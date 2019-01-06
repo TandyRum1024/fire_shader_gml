@@ -1,0 +1,111 @@
+// 2019-01-07 00:19:36
+#event create THANOS CAR
+/// THANOS CAR
+time = 0;
+
+// screens
+WIN_WID = room_width;
+WIN_HEI = room_height;
+RES_WID = WIN_WID;
+RES_HEI = WIN_HEI;
+
+// 불 노이즈 텍스쳐; 이 텍스쳐를 바꾸시면 불의 형대가 달라집니다.
+texCoolingMap = sprite_get_texture(texPerlin, 0);
+
+// 불이 그려지는 서피스입니다. 여기에 흰색으로 무언갈 그리면 그게 불이 됩니다.
+// 이 예제에서는 화면 전체를 차지하게 하도록 했습니다. 사이즈는 화면의 1/2 이고요.
+surfFire = surface_create(RES_WID, RES_HEI);
+texFire = surface_get_texture(surfFire);
+
+// 그리고 이건 그냥 서피스. 이 서피스를 불이 그려지는 서피스에 그립니다.
+surfGame = surface_create(RES_WID, RES_HEI);
+
+// 쉐이더 변수
+uCoolingMap = shader_get_sampler_index(shd_fire, "u_coolingmap");
+uSource = shader_get_sampler_index(shd_fire, "u_source");
+uTextureSize = shader_get_uniform(shd_fire, "u_texturesize");
+uTime = shader_get_uniform(shd_fire, "u_time");
+
+#event step 서피스 살려두기 & 시간 변수 증가
+if (!surface_exists(surfFire))
+{
+    surfFire = surface_create(RES_WID, RES_HEI);
+    texFire = surface_get_texture(surfFire);
+}
+
+if (!surface_exists(surfGame))
+    surfGame = surface_create(RES_WID, RES_HEI);
+
+// 시간
+time += 2;
+
+#event draw 일반 서피스 그리기
+surface_set_target(surfGame);
+draw_clear_alpha(0, 0);
+
+// 매 프레임마다 맨 아래줄에 흰 픽셀을 넣어서 불이 계속 "일어나게" 합니다
+var _hei = 4;
+var _fireblue = $ffe5db;
+draw_rectangle_colour(0, RES_HEI - _hei, RES_WID, RES_HEI, _fireblue, _fireblue, _fireblue, _fireblue, false);
+
+// oof ow my bones ow
+/*
+draw_set_halign(1);draw_set_valign(1);
+draw_set_font(fntBonehurtingjuice);
+var _rainbow = make_colour_hsv(time * 12, 255, 255);
+draw_text_colour(RES_WID >> 1, RES_HEI >> 1, "H", _rainbow, _rainbow, _rainbow, _rainbow, 1.0);
+draw_set_font(fntNormal);
+draw_set_halign(0);draw_set_valign(0);
+*/
+draw_sprite(sprMEAT, 0, RES_WID >> 1, RES_HEI >> 1);
+
+draw_set_halign(1);draw_set_valign(1);
+draw_set_font(fntLobster);
+var _rainbow = make_colour_hsv(time * 12, 255, 255);
+draw_text_transformed_colour((RES_WID >> 1) - 150, (RES_HEI >> 1) - 150, "Yum!", 1, 1, 32, _rainbow, _rainbow, _rainbow, _rainbow, 1.0);
+draw_set_font(fntNormal);
+draw_set_halign(0);draw_set_valign(0);
+surface_reset_target();
+
+#section 불이 그려지는 서피스 업데이트
+surface_set_target(surfFire);
+
+d3d_set_fog(true, c_white, 0, 0);
+draw_surface(surfGame, 0, 0);
+d3d_set_fog(false, 0, 0, 0);
+
+// 마우스로 그리기
+if (mouse_check_button(mb_left))
+{
+    var _ratiox = WIN_WID / RES_WID;
+    var _ratioy = WIN_HEI / RES_HEI;
+    draw_circle_colour(mouse_x / _ratiox, mouse_y / _ratioy, 8, c_white, c_white, false);
+}
+
+surface_reset_target();
+
+#section 불 효과
+surface_set_target(surfFire);
+shader_set(shd_fire);
+// 쉐이더 변수 설정 
+shader_set_uniform_f(uTextureSize, RES_WID, RES_HEI);
+shader_set_uniform_f(uTime, time);
+texture_set_stage(uCoolingMap, texCoolingMap);
+texture_set_stage(uSource, texFire);
+
+// 서피스; 아무 서피스나 써도 됩니다.
+// 저희가 필요한건 uv가 있고 화면을 덮는 버텍스면 되니깐요
+draw_surface(surfFire, 0, 0);
+shader_reset();
+surface_reset_target();
+
+draw_clear(0);
+draw_sprite(bgKot, 2, WIN_WID / 2, WIN_HEI / 2);
+
+draw_set_blend_mode(bm_add);
+shader_set(shd_fire_effect);
+draw_surface_stretched(surfFire, 0, 0, WIN_WID, WIN_HEI);
+shader_reset();
+draw_set_blend_mode(bm_normal);
+
+draw_surface_stretched(surfGame, 0, 0, WIN_WID, WIN_HEI);
