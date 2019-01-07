@@ -10,6 +10,9 @@
     <sprite>sprites\texPerlin256</sprite>
     <sprite>sprites\bgKot</sprite>
     <sprite>sprites\sprMEAT</sprite>
+    <sprite>sprites\sprDUANEDANCE</sprite>
+    <sprite>sprites\sprDUANESPIN</sprite>
+    <sprite>sprites\sprGHERKIN</sprite>
   </sprites>
   <backgrounds name="background"/>
   <paths name="paths"/>
@@ -21,14 +24,16 @@
   </shaders>
   <fonts name="fonts">
     <font>fonts\fntBonehurtingjuice</font>
-    <font>fonts\fntNormal</font>
     <font>fonts\fntLobster</font>
+    <font>fonts\fntHangul</font>
   </fonts>
   <objects name="objects">
     <object>objects\oKNUT_PA_LINJEN</object>
+    <object>objects\oANIME_ROOM</object>
   </objects>
   <rooms name="rooms">
-    <room>rooms\room0</room>
+    <room>rooms\rm_main</room>
+    <room>rooms\rm_cartoon</room>
   </rooms>
   <help>
     <rtf>help.rtf</rtf>

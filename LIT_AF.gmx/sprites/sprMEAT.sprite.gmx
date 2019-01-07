@@ -7,19 +7,21 @@
   <coltolerance>0</coltolerance>
   <sepmasks>0</sepmasks>
   <bboxmode>0</bboxmode>
-  <bbox_left>24</bbox_left>
-  <bbox_right>231</bbox_right>
-  <bbox_top>8</bbox_top>
-  <bbox_bottom>239</bbox_bottom>
+  <bbox_left>0</bbox_left>
+  <bbox_right>220</bbox_right>
+  <bbox_top>0</bbox_top>
+  <bbox_bottom>267</bbox_bottom>
   <HTile>0</HTile>
   <VTile>0</VTile>
   <TextureGroups>
     <TextureGroup0>0</TextureGroup0>
   </TextureGroups>
   <For3D>0</For3D>
-  <width>256</width>
-  <height>256</height>
+  <width>221</width>
+  <height>268</height>
   <frames>
     <frame index="0">images\sprMEAT_0.png</frame>
+    <frame index="1">images\sprMEAT_1.png</frame>
+    <frame index="2">images\sprMEAT_2.png</frame>
   </frames>
 </sprite>

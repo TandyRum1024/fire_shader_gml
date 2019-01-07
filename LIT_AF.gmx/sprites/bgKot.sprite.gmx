@@ -22,6 +22,5 @@
   <frames>
     <frame index="0">images\bgKot_0.png</frame>
     <frame index="1">images\bgKot_1.png</frame>
-    <frame index="2">images\bgKot_2.png</frame>
   </frames>
 </sprite>

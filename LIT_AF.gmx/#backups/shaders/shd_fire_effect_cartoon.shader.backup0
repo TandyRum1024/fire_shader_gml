@@ -1,4 +1,4 @@
-// 2019-01-07 10:29:03
+// 2019-01-07 21:39:38
 //
 // Simple passthrough vertex shader
 //
@@ -25,6 +25,10 @@ void main()
 varying vec2 v_vTexcoord;
 varying vec4 v_vColour;
 
+uniform vec4 u_colourmid;
+uniform vec4 u_colourcore;
+uniform vec4 u_coloursmoke;
+
 float round (float val)
 {
     return floor(val + 0.5);
@@ -33,13 +37,11 @@ float round (float val)
 void main()
 {
     // 255, 152, 56
-    vec4 colorCore = vec4(1.0, 0.89, 0.21, 1.0);
+    //vec4 colorCore = vec4(1.0, 0.89, 0.21, 1.0);
     // 255, 84, 0
-    vec4 colorMid = vec4(0.95, 0.22, 0.0, 1.0);
-    // 188, 25, 0
-    vec4 colorAmber = vec4(0.43, 0.22, 0.0, 0.5);
+    //vec4 colorMid = vec4(0.95, 0.22, 0.0, 1.0);
     // 99, 9, 0
-    vec4 colorSmoke = vec4(0.58, 0.53, 0.5, 0.25);
+    //vec4 colorSmoke = vec4(0.58, 0.53, 0.5, 0.25);
     
     vec2 distort = vec2(sin(v_vTexcoord.y * 42.0 + 42.42) + cos(v_vTexcoord.x * 22.0 + 8.2),
                         cos(v_vTexcoord.x * 42.0 + 42.42) + sin(v_vTexcoord.y * 22.0 + 8.2)) * 0.001;
@@ -54,15 +56,17 @@ void main()
     
     
     float interpSmoke = lumSmoke;
-    composite = mix(composite, colorSmoke, interpSmoke);
+    composite = mix(composite, u_coloursmoke, smoothstep(0.0, 1.5, interpSmoke * interpSmoke));
     
     float stepCore = 0.80;
     float stepMidEnd = 0.79;
-    float stepMid = 0.01;
+    float stepMid = 0.41;
+    float stepThreshold = 0.4;
     
-    composite = mix(composite, colorMid, smoothstep(0.0, stepMid, lumFire)); // antialias
-    composite = mix(composite, colorMid, round(smoothstep(stepMid, stepMidEnd, lumFire)));
-    composite = mix(composite, colorCore, round(smoothstep(stepMidEnd, stepCore, lumFireDistort)));
+    
+    composite = mix(composite, u_colourmid, smoothstep(stepThreshold, stepMid, lumFire)); // antialias
+    composite = mix(composite, u_colourmid, round(smoothstep(stepMid, stepMidEnd, lumFire)));
+    composite = mix(composite, u_colourcore, round(smoothstep(stepMidEnd, stepCore, lumFireDistort)));
     
     gl_FragColor = v_vColour * composite;
 }

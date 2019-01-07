@@ -34,12 +34,12 @@ uniform float u_time; // optional
 // https://gist.github.com/patriciogonzalezvivo/670c22f3966e662d2f83
 const mat2 m2 = mat2(0.8,-0.6,0.6,0.8);
 float rand(vec2 n) { 
-	return fract(sin(dot(n, vec2(12.9898, 4.1414))) * 43758.5453);
+return fract(sin(dot(n, vec2(12.9898, 4.1414))) * 43758.5453);
 }
 float noise(vec2 n) {
-	const vec2 d = vec2(0.0, 1.0);
+const vec2 d = vec2(0.0, 1.0);
   vec2 b = floor(n), f = smoothstep(vec2(0.0), vec2(1.0), fract(n));
-	return mix(mix(rand(b), rand(b + d.yx), f.x), mix(rand(b + d.xy), rand(b + d.yy), f.x), f.y);
+return mix(mix(rand(b), rand(b + d.yx), f.x), mix(rand(b + d.xy), rand(b + d.yy), f.x), f.y);
 }
 float fbm( in vec2 p ){
     float f = 0.0;
@@ -56,9 +56,9 @@ void main()
     // AlreadyBurnt
     vec4 colorChar = vec4(0.23, 0.22, 0.20, 1.0);
     // Edge
-    vec4 colorAmber = vec4(0.93, 0.16, 0.02, 0.95);
+    vec4 colorBurn = vec4(0.71, 0.08, 0.0, 1.0);
     // Edge2
-    vec4 colorBurn = vec4(0.95, 0.82, 0.4, 0.0);
+    vec4 colorAmber = vec4(0.95, 0.46, 0.1, 1.0);
     
     
     vec4 original = v_vColour * texture2D( gm_BaseTexture, v_vTexcoord );
@@ -66,10 +66,12 @@ void main()
     float alpha = composite.a;
     float microwave_chan_meat_spin = 0.0;
     #ifdef USE_EXTERNAL_TEXTURE
-        microwave_chan_meat_spin = texture2D(u_texture, v_vTexcoord).r;
+        microwave_chan_meat_spin = texture2D(u_texture, fract(v_vTexcoord)).r;
     #else
-        microwave_chan_meat_spin = fbm(v_vTexcoord * 30.0);
+        microwave_chan_meat_spin = fbm(v_vTexcoord * 40.0);
     #endif
+    
+    // microwave_chan_meat_spin += fbm(v_vTexcoord * 80.0) * 0.5 - 0.5;
     
     // i = threshold + noise[0..1]
     // imax = 2
@@ -77,21 +79,33 @@ void main()
     // imin = 1
     // imin / 2 = 0.5
     // ifin = smoothstep(0.5, 1.0, i)
-    float threshold = smoothstep(0.0, 2.0, (microwave_chan_meat_spin + u_intensity));
-    float interp = threshold;
+    float delta = max(u_intensity - microwave_chan_meat_spin, 0.0);
+    float interp = smoothstep(microwave_chan_meat_spin, 1.0, u_intensity + microwave_chan_meat_spin);
     
+    // float threshold = delta;//smoothstep(0.0, 1.0, ((1.0 + microwave_chan_meat_spin * 0.5 - 0.25) * u_intensity));
+    // float interp = threshold;
+    /*
     float stepChar = 0.20;
-    float stepCharEnd = 0.45;
-    float stepAmber = 0.49 + sin(u_time) * 0.005;
-    float stepLimit = 0.50 + cos(u_time + 42.0) * 0.005;
+    float stepCharEnd = 0.40;
+    float stepAmber = 0.49;// + sin(u_time) * 0.005;
+    float stepFull = 0.50;// + cos(u_time + 42.0) * 0.005;
+    float stepLimit = 0.51;// + cos(u_time + 21.0) * 0.01;
+    */
+    float stepChar = 0.1;
+    float stepCharEnd = 0.75;
+    float stepAmber = 0.95 + sin(u_time * 0.22) * 0.02;
+    float stepFull = 0.98 + cos(u_time * 0.42 + 42.0) * 0.01;
+    float stepLimit = min(1.0 + cos(u_time * 0.52 + 21.0) * 0.01, 1.0);
     
     // blend
     composite = mix(composite, composite * colorChar, smoothstep(stepChar, stepCharEnd, interp));
-    composite = mix(composite, min(composite + colorAmber, 1.0), smoothstep(stepCharEnd, stepAmber, interp));
-    composite = mix(composite, colorBurn, smoothstep(stepAmber, stepLimit, interp));
+    composite = mix(composite, min(composite + colorBurn, 1.0), smoothstep(stepCharEnd, stepAmber, interp));
+    composite = mix(composite, min(original + colorAmber, 1.0), smoothstep(stepAmber, stepFull, interp));
+    composite = mix(composite, vec4(0.0), smoothstep(stepFull, stepLimit, interp));
     
     composite.a = min(alpha, composite.a);
     
     gl_FragColor = composite; //vec4(vec3(0.5 + max(0.0, interp - 1.0), 0.5, 0.5), interp);
+    // gl_FragColor = vec4(vec3(interp), 1.0);
 }
 

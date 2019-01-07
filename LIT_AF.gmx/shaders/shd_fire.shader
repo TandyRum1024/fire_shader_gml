@@ -54,20 +54,20 @@ uniform sampler2D u_coolingmap; // 불 노이즈 텍스쳐. 이쁜 노이즈를 
 uniform sampler2D u_source; // 소스 텍스쳐 -- 이 텍스쳐로 불 이펙트를 계산합니다.
 uniform float u_time; // 시간
 
-const float windStrength = 2.0;
-const float windSpeed = 2.0;
-const float scrollSpeed = 2.0;
+uniform float u_scrollspeed;// = 4.0;
+uniform float u_windstrength;// = 1.5;
+uniform float u_windspeed;// = 1.5;
 
 // Fractional Brownian motion 노이즈 -- Inigo Quilez 제작
 // https://gist.github.com/patriciogonzalezvivo/670c22f3966e662d2f83
 const mat2 m2 = mat2(0.8,-0.6,0.6,0.8);
 float rand(vec2 n) { 
-	return fract(sin(dot(n, vec2(12.9898, 4.1414))) * 43758.5453);
+return fract(sin(dot(n, vec2(12.9898, 4.1414))) * 43758.5453);
 }
 float noise(vec2 n) {
-	const vec2 d = vec2(0.0, 1.0);
+const vec2 d = vec2(0.0, 1.0);
   vec2 b = floor(n), f = smoothstep(vec2(0.0), vec2(1.0), fract(n));
-	return mix(mix(rand(b), rand(b + d.yx), f.x), mix(rand(b + d.xy), rand(b + d.yy), f.x), f.y);
+return mix(mix(rand(b), rand(b + d.yx), f.x), mix(rand(b + d.xy), rand(b + d.yy), f.x), f.y);
 }
 float fbm( in vec2 p ){
     float f = 0.0;
@@ -123,11 +123,11 @@ void main()
     /*
         불!!!!!
     */
-    vec2 uvFire = v_vTexcoord + vec2(0.0, v_pixelsize.y * scrollSpeed);
+    vec2 uvFire = v_vTexcoord + vec2(0.0, v_pixelsize.y * u_scrollspeed);
     
     // 평균값 가져오기
     #ifdef USE_WINDMAP
-        vec2 flowmap = windmap2D(v_vTexcoord, timeOff * windSpeed, windStrength);
+        vec2 flowmap = windmap2D(v_vTexcoord, timeOff * u_windspeed, u_windstrength);
     #else
         vec2 flowmap = vec2(0.0);
     #endif
@@ -135,7 +135,7 @@ void main()
     float lumFire = neighbor2D(u_source, uvFire + flowmap); // fire
     
     // 냉각맵 (텍스쳐) 값 가져오기
-    float fireY = (v_vTexcoord.y + v_pixelsize.y * scrollSpeed * u_time); // fract로 offy 가 0..1 범위에 있게 만들어요
+    float fireY = (v_vTexcoord.y + v_pixelsize.y * u_scrollspeed * u_time); // fract로 offy 가 0..1 범위에 있게 만들어요
     
     #ifdef USE_EXTERNAL_NOISE
         float coolmapRaw = texture2D(u_coolingmap, vec2(v_vTexcoord.x, fract(fireY))).r;
@@ -144,7 +144,7 @@ void main()
         coolmap *= coolmap;
         coolmap *= 0.95;
     #else
-        float coolmapRaw = fbm((vec2(v_vTexcoord.x, fireY) + flowmap) * 30.0);
+        float coolmapRaw = fbm((vec2(v_vTexcoord.x, fireY) + flowmap) * 40.0);
         // 냉각맵 감마 조정
         float coolmap = smoothstep(0.0, 1.0, coolmapRaw * coolmapRaw);
         coolmap *= 0.25;
@@ -162,13 +162,13 @@ void main()
         vec2 uvSmoke = uvFire + vec2(0.0, v_pixelsize.y * smokeMultiplier);
         
         #ifdef USE_WINDMAP
-            flowmap += windmap2D(v_vTexcoord, timeOff * windSpeed, windStrength * 0.01 * smokeMultiplier);
+            flowmap += windmap2D(v_vTexcoord, timeOff * u_windspeed, u_windstrength * 0.01 * smokeMultiplier);
         #else
             flowmap = vec2(0.0);
         #endif
         
         float lumSmoke = neighborSmoke(u_source, uvSmoke + flowmap);
-        float smokeY = (v_vTexcoord.y + smokeMultiplier + v_pixelsize.y * smokeMultiplier * scrollSpeed * u_time);
+        float smokeY = (v_vTexcoord.y + smokeMultiplier + v_pixelsize.y * smokeMultiplier * u_scrollspeed * u_time);
         
         #ifdef USE_EXTERNAL_NOISE
             coolmapRaw = texture2D(u_coolingmap, vec2(v_vTexcoord.x, fract(smokeY)) * 0.5).r;

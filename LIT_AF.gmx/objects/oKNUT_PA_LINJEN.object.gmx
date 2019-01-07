@@ -30,12 +30,13 @@
 time = 0;
 mouse_xprev = -1;
 mouse_yprev = -1;
+clearSurface = true;
 
 // screens
 WIN_WID = room_width;
 WIN_HEI = room_height;
-RES_WID = WIN_WID &gt;&gt; 2;
-RES_HEI = WIN_HEI &gt;&gt; 2;
+RES_WID = WIN_WID;
+RES_HEI = WIN_HEI;
 
 // 불 노이즈 텍스쳐; 이 텍스쳐를 바꾸시면 불의 형대가 달라집니다.
 texCoolingMap = sprite_get_texture(texPerlin, 0);
@@ -53,10 +54,25 @@ uCoolingMap = shader_get_sampler_index(shd_fire, "u_coolingmap");
 uSource = shader_get_sampler_index(shd_fire, "u_source");
 uTextureSize = shader_get_uniform(shd_fire, "u_texturesize");
 uTime = shader_get_uniform(shd_fire, "u_time");
+uScrollSpeed = shader_get_uniform(shd_fire, "u_scrollspeed");
+uWindStrength = shader_get_uniform(shd_fire, "u_windstrength");
+uWindSpeed = shader_get_uniform(shd_fire, "u_windspeed");
 
 uBurnIntensity = shader_get_uniform(shd_burn, "u_intensity");
 uBurnMap = shader_get_sampler_index(shd_burn, "u_texture");
 uBurnTime = shader_get_sampler_index(shd_burn, "u_time");
+
+// HD
+texture_set_interpolation(true);
+    
+// if (display_aa &gt; 12)
+//     display_reset(8, false);
+// else if (display_aa &gt; 6)
+//     display_reset(4, false);
+// else
+//     display_reset(2, false);
+
+draw_set_font(fntHangul);
 </string>
           </argument>
         </arguments>
@@ -91,6 +107,92 @@ if (!surface_exists(surfGame))
 
 // 시간
 time += 2;
+
+</string>
+          </argument>
+        </arguments>
+      </action>
+      <action>
+        <libid>1</libid>
+        <id>603</id>
+        <kind>7</kind>
+        <userelative>0</userelative>
+        <isquestion>0</isquestion>
+        <useapplyto>-1</useapplyto>
+        <exetype>2</exetype>
+        <functionname></functionname>
+        <codestring></codestring>
+        <whoName>self</whoName>
+        <relative>0</relative>
+        <isnot>0</isnot>
+        <arguments>
+          <argument>
+            <kind>1</kind>
+            <string>/// 다음 룸으로 넘어가기
+if (keyboard_check_pressed(vk_enter))
+    room_goto(rm_cartoon);
+</string>
+          </argument>
+        </arguments>
+      </action>
+    </event>
+    <event eventtype="7" enumb="5">
+      <action>
+        <libid>1</libid>
+        <id>603</id>
+        <kind>7</kind>
+        <userelative>0</userelative>
+        <isquestion>0</isquestion>
+        <useapplyto>-1</useapplyto>
+        <exetype>2</exetype>
+        <functionname></functionname>
+        <codestring></codestring>
+        <whoName>self</whoName>
+        <relative>0</relative>
+        <isnot>0</isnot>
+        <arguments>
+          <argument>
+            <kind>1</kind>
+            <string>if (surface_exists(surfFire))
+{
+    surface_set_target(surfFire);
+    draw_clear_alpha(0, 0);
+    surface_reset_target();
+    surface_free(surfFire);
+    texFire = -1;
+}
+    
+if (surface_exists(surfGame))
+{
+    surface_set_target(surfGame);
+    draw_clear_alpha(0, 0);
+    surface_reset_target();
+    surface_free(surfGame);
+}
+</string>
+          </argument>
+        </arguments>
+      </action>
+    </event>
+    <event eventtype="8" enumb="64">
+      <action>
+        <libid>1</libid>
+        <id>603</id>
+        <kind>7</kind>
+        <userelative>0</userelative>
+        <isquestion>0</isquestion>
+        <useapplyto>-1</useapplyto>
+        <exetype>2</exetype>
+        <functionname></functionname>
+        <codestring></codestring>
+        <whoName>self</whoName>
+        <relative>0</relative>
+        <isnot>0</isnot>
+        <arguments>
+          <argument>
+            <kind>1</kind>
+            <string>// info
+draw_text(10, 10, "&lt;엔터 키&gt; 로 다음 데모로 이동#마우스 드래그로 불의구");
 </string>
           </argument>
         </arguments>
@@ -131,20 +233,37 @@ draw_text_colour(RES_WID &gt;&gt; 1, RES_HEI &gt;&gt; 1, "H", _rainbow, _rainbow
 draw_set_font(fntNormal);
 draw_set_halign(0);draw_set_valign(0);
 */
+var _cx = RES_WID &gt;&gt; 1;
+var _cy = RES_HEI &gt;&gt; 1;
 
+// 불타는 우리의 고기
 shader_set(shd_burn);
+// 변수
 shader_set_uniform_f(uBurnTime, time);
-shader_set_uniform_f(uBurnIntensity, sin(time * 0.02) * 0.5 + 0.5);
+shader_set_uniform_f(uBurnIntensity, sin(time * 0.018) * 0.5 + 0.5);
 texture_set_stage(uBurnMap, texCoolingMap);
-draw_sprite_ext(sprMEAT, 0, RES_WID &gt;&gt; 1, (RES_HEI &gt;&gt; 1) + 32, 0.2, 0.2, time * 5, c_white, 1.0);
+
+// 스프라이트
+draw_sprite_ext(sprMEAT, 0, _cx - 80, _cy + 150, 0.75, 0.75, sin(time * 0.1) * 8, c_white, 1.0);
+
+shader_set_uniform_f(uBurnIntensity, cos(time * 0.018) * 0.5 + 0.5);
+draw_sprite_ext(sprGHERKIN, 0, _cx + 80, _cy + 150, 1, 1, cos(time * 0.1 + 42) * 8, c_white, 1.0);
+
+// 오이 타임
+shader_set_uniform_f(uBurnIntensity, sin(time * 0.058) * 0.1 + 0.2);
+draw_set_halign(1);draw_set_valign(1);
+draw_set_font(fntLobster);
+var _rainbow = 0;//make_colour_hsv(time * 2, 255, 255);
+draw_text_transformed_colour((RES_WID &gt;&gt; 1), (RES_HEI &gt;&gt; 1) - 150, "Gherkin  Time", 1.5, 1.5, 0, _rainbow, _rainbow, _rainbow, _rainbow, 1.0);
+draw_set_font(fntHangul);
+draw_set_halign(0);draw_set_valign(0);
+
 shader_reset();
 
-draw_set_halign(1);draw_set_valign(1);
-draw_set_font(fntBonehurtingjuice);
-var _rainbow = make_colour_hsv(time * 12, 255, 255);
-draw_text_transformed_colour((RES_WID &gt;&gt; 1), (RES_HEI &gt;&gt; 1) - 30, "Super#Meat Balls", 0.75, 0.75, 0, _rainbow, _rainbow, _rainbow, _rainbow, 1.0);
-draw_set_font(fntNormal);
-draw_set_halign(0);draw_set_valign(0);
+// 백댄서 준비
+draw_sprite_ext(sprDUANESPIN, time * 0.5, _cx - 300, _cy + 150, 1, 1, 0, c_white, 1);
+draw_sprite_ext(sprDUANESPIN, time * 0.5, _cx + 300, _cy + 150, 1, 1, 0, c_white, 1);
+
 surface_reset_target();
 
 </string>
@@ -170,6 +289,13 @@ surface_reset_target();
             <string>/// 불이 그려지는 서피스 업데이트
 surface_set_target(surfFire);
 
+if (clearSurface)
+{
+    clearSurface = false;
+    draw_clear(0);
+}
+
+// 흰색으로 그리기
 d3d_set_fog(true, c_white, 0, 0);
 draw_surface(surfGame, 0, 0);
 d3d_set_fog(false, 0, 0, 0);
@@ -216,8 +342,12 @@ surface_reset_target();
 surface_set_target(surfFire);
 shader_set(shd_fire);
 // 쉐이더 변수 설정 
+texFire = surface_get_texture(surfFire);
 shader_set_uniform_f(uTextureSize, RES_WID, RES_HEI);
 shader_set_uniform_f(uTime, time);
+shader_set_uniform_f(uScrollSpeed, 4);
+shader_set_uniform_f(uWindStrength, 1.5);
+shader_set_uniform_f(uWindSpeed, 1.5);
 texture_set_stage(uCoolingMap, texCoolingMap);
 texture_set_stage(uSource, texFire);
 
@@ -227,27 +357,19 @@ draw_surface(surfFire, 0, 0);
 shader_reset();
 surface_reset_target();
 
+// 배경
 draw_clear(0);
-draw_sprite(bgKot, 2, WIN_WID / 2, WIN_HEI / 2);
+draw_sprite(bgKot, 0, WIN_WID / 2, WIN_HEI / 2);
 
+// 불
 draw_set_blend_mode(bm_add);
 shader_set(shd_fire_effect);
 draw_surface_stretched(surfFire, 0, 0, WIN_WID, WIN_HEI);
 shader_reset();
 draw_set_blend_mode(bm_normal);
 
+// 일반 서피스
 draw_surface_stretched(surfGame, 0, 0, WIN_WID, WIN_HEI);
-/*
-draw_sprite(bgKot, 1, WIN_WID / 2, WIN_HEI / 2);
-
-shader_set(shd_burn);
-shader_set_uniform_f(uBurnIntensity, sin(time * 0.02) * 0.5 + 0.5);
-texture_set_stage(uBurnMap, texCoolingMap);
-
-// draw_sprite_ext(sprMEAT, 0, WIN_WID &gt;&gt; 1, (WIN_HEI &gt;&gt; 1), 1, 1, sin(time), c_white, 1.0);
-draw_surface_stretched(surfGame, 0, 0, WIN_WID, WIN_HEI);
-shader_reset();
-*/
 </string>
           </argument>
         </arguments>

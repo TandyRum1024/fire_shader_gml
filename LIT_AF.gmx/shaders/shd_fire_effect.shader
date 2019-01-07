@@ -27,14 +27,14 @@ varying vec4 v_vColour;
 void main()
 {
     // 255, 152, 56
-    vec4 colorCore = vec4(1.0, 0.59, 0.21, 1.0);
+    vec4 colorCore = vec4(1.0, 0.75, 0.3, 1.0);
     // 255, 84, 0
     vec4 colorMid = vec4(1.0, 0.32, 0.0, 1.0);
     // 188, 25, 0
-    vec4 colorAmber = vec4(0.73, 0.22, 0.0, 0.5);
+    vec4 colorAmber = vec4(0.73, 0.28, 0.08, 0.5);
     // 99, 9, 0
     vec4 colorSmokeA = vec4(0.18, 0.13, 0.13, 0.0);
-    vec4 colorSmokeB = vec4(0.58, 0.53, 0.5, 0.25);
+    vec4 colorSmokeB = vec4(0.38, 0.33, 0.3, 0.4);
     
     vec4 composite = vec4(0.0);
     
@@ -49,10 +49,10 @@ void main()
 	float stepHigh = 1.0;
 	
 	// 연기
-	composite = mix(colorSmokeA, colorSmokeB, lumSmoke);
+	vec4 smokeFinal = mix(colorSmokeA, colorSmokeB, lumSmoke);
 	
 	// 불
-	composite = mix(composite, colorAmber, smoothstep(stepLow, stepMidStart, lumFire));
+	composite = mix(smokeFinal, colorAmber, smoothstep(stepLow, stepMidStart, lumFire));
 	composite = mix(composite, colorMid, smoothstep(stepMidStart, stepMidEnd, lumFire));
 	composite = mix(composite, colorCore, smoothstep(stepMidEnd, stepHigh, lumFire));
     
