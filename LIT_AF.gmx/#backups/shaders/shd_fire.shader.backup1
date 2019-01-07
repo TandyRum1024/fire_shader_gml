@@ -1,4 +1,4 @@
-// 2019-01-07 00:11:42
+// 2019-01-07 10:29:52
 //
 // OH GOD
 // IM BURNING
@@ -42,6 +42,9 @@ void main()
 // 셀 쉐이딩
 // #define ANIME_MANGA_GWAAAAAAAAA
 
+// 연기를 B 채널에 저장?
+#define RENDER_SMOKE
+
 #define M_PI 3.14159265358979323846
 
 varying vec2 v_vTexcoord;
@@ -52,9 +55,9 @@ uniform sampler2D u_coolingmap; // 불 노이즈 텍스쳐. 이쁜 노이즈를 
 uniform sampler2D u_source; // 소스 텍스쳐 -- 이 텍스쳐로 불 이펙트를 계산합니다.
 uniform float u_time; // 시간
 
-float windStrength = 3.0;
-float windSpeed = 1.0;
-float scrollSpeed = 6.0;
+const float windStrength = 4.0;
+const float windSpeed = 4.0;
+const float scrollSpeed = 2.0;
 
 // Fractional Brownian motion 노이즈 -- Inigo Quilez 제작
 // https://gist.github.com/patriciogonzalezvivo/670c22f3966e662d2f83
@@ -77,6 +80,12 @@ float fbm( in vec2 p ){
     return f/0.9375;
 }
 
+float intensity (sampler2D src, vec2 uv)
+{
+    vec4 tex = texture2D(src, uv);
+    return (tex.r + tex.b) * 0.5;
+}
+
 // 픽셀 주위의 평균값을 가져오는 함수
 float neighbor2D (sampler2D src, vec2 uv)
 {
@@ -86,6 +95,16 @@ float neighbor2D (sampler2D src, vec2 uv)
     float pb = texture2D(src, uv + vec2(0.0, v_pixelsize.y)).r;
     
     return (pl + pr + pt + pb) * 0.25;
+}
+
+float neighborSmoke (sampler2D src, vec2 uv)
+{
+    float pl = intensity(src, uv - vec2(v_pixelsize.x, 0.0));
+    float pr = intensity(src, uv + vec2(v_pixelsize.x, 0.0));
+    float pt = intensity(src, uv - vec2(0.0, v_pixelsize.y));
+    float pb = intensity(src, uv + vec2(0.0, v_pixelsize.y));
+    
+    return (pl + pr + pt + pb) * 0.5;
 }
 
 // 바람을 구하는 함수
@@ -99,9 +118,13 @@ vec2 windmap2D (vec2 uv, float time, float strength)
 
 void main()
 {
+    vec4 final = vec4(vec3(0.0), 1.0);
     float timeOff = u_time * 0.05;
-    // 바람?
-    vec2 uv = v_vTexcoord + vec2(0.0, v_pixelsize.y * scrollSpeed);
+    
+    /*
+        불!!!!!
+    */
+    vec2 uvFire = v_vTexcoord + vec2(0.0, v_pixelsize.y * scrollSpeed);
     
     // 평균값 가져오기
     #ifdef USE_WINDMAP
@@ -109,27 +132,61 @@ void main()
     #else
         vec2 flowmap = vec2(0.0);
     #endif
-    float neighbor = neighbor2D(u_source, uv + flowmap);
+    
+    float lumFire = neighbor2D(u_source, uvFire + flowmap); // fire
     
     // 냉각맵 (텍스쳐) 값 가져오기
-    float offy = (v_vTexcoord.y + v_pixelsize.y * scrollSpeed * u_time); // fract로 offy 가 0..1 범위에 있게 만들어요
+    float fireY = (v_vTexcoord.y + v_pixelsize.y * scrollSpeed * u_time); // fract로 offy 가 0..1 범위에 있게 만들어요
     
     #ifdef USE_EXTERNAL_NOISE
-        float coolmapRaw = texture2D(u_coolingmap, vec2(v_vTexcoord.x, fract(offy))).r;
+        float coolmapRaw = texture2D(u_coolingmap, vec2(v_vTexcoord.x, fract(fireY))).r;
         // 냉각맵 감마 조정
         float coolmap = smoothstep(0.0, 1.0, coolmapRaw * coolmapRaw);
         coolmap *= coolmap;
-        coolmap *= 0.75;
+        coolmap *= 0.95;
     #else
-        float coolmapRaw = fbm((vec2(v_vTexcoord.x, offy) + flowmap) * 30.0);
+        float coolmapRaw = fbm((vec2(v_vTexcoord.x, fireY) + flowmap) * 30.0);
         // 냉각맵 감마 조정
         float coolmap = smoothstep(0.0, 1.0, coolmapRaw * coolmapRaw);
         coolmap *= 0.25;
     #endif
     
     // 적용
-    float cooloffwankers = max(neighbor - coolmap, 0.0);
+    float fireFinal = max(lumFire - coolmap, 0.0);
+    final.r = fireFinal;
     
+    /*
+        연기!!!!!
+    */
+    #ifdef RENDER_SMOKE
+        const float smokeMultiplier = 1.5;
+        vec2 uvSmoke = uvFire + vec2(0.0, v_pixelsize.y * smokeMultiplier);
+        
+        #ifdef USE_WINDMAP
+            flowmap += windmap2D(v_vTexcoord, timeOff * windSpeed, windStrength * 0.01 * smokeMultiplier);
+        #else
+            flowmap = vec2(0.0);
+        #endif
+        
+        float lumSmoke = neighborSmoke(u_source, uvSmoke + flowmap);
+        float smokeY = (v_vTexcoord.y + smokeMultiplier + v_pixelsize.y * smokeMultiplier * scrollSpeed * u_time);
+        
+        #ifdef USE_EXTERNAL_NOISE
+            coolmapRaw = texture2D(u_coolingmap, vec2(v_vTexcoord.x, fract(smokeY)) * 0.5).r;
+            // 냉각맵 감마 조정
+            coolmap = smoothstep(0.0, 1.0, coolmapRaw * coolmapRaw);
+            coolmap *= coolmap;
+            coolmap *= 0.75;
+        #else
+            coolmapRaw = fbm((vec2(v_vTexcoord.x, smokeY) + flowmap) * 15.0);
+            // 냉각맵 감마 조정
+            coolmap = smoothstep(0.0, 1.0, coolmapRaw * coolmapRaw);
+            coolmap *= 0.25;
+        #endif
+        
+        float smokeFinal = max(lumSmoke - coolmap, 0.0);
+        final.b = smokeFinal;
+    #endif
     /*
     #ifdef ANIME_MANGA_GWAAAAAAAAA
         // 파괴 망가 그아앗
@@ -146,7 +203,6 @@ void main()
     #endif
     */
     
-    vec4 fin = vec4(vec3(cooloffwankers), 1.0);
-    gl_FragColor = fin;
+    gl_FragColor = final;
 }
 

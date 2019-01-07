@@ -1,3 +1,4 @@
+// 2019-01-07 10:28:40
 //
 // Simple passthrough vertex shader
 //
@@ -61,7 +62,7 @@ void main()
     
     composite = mix(composite, colorMid, smoothstep(0.0, stepMid, lumFire)); // antialias
     composite = mix(composite, colorMid, round(smoothstep(stepMid, stepMidEnd, lumFire)));
-    composite = mix(composite, colorCore, round(smoothstep(stepMidEnd, stepCore, lumFireDistort)));
+    composite = mix(composite, colorCore, round(smoothstep(stepCore, 1.0, lumFireDistort)));
     
     gl_FragColor = v_vColour * composite;
 }

@@ -33,10 +33,14 @@ void main()
     // 188, 25, 0
     vec4 colorAmber = vec4(0.73, 0.22, 0.0, 0.5);
     // 99, 9, 0
-    vec4 colorSmoke = vec4(0.18, 0.13, 0.13, 0.0);
+    vec4 colorSmokeA = vec4(0.18, 0.13, 0.13, 0.0);
+    vec4 colorSmokeB = vec4(0.58, 0.53, 0.5, 0.25);
     
-    vec4 final = vec4(0.0);
-    float lum = texture2D( gm_BaseTexture, v_vTexcoord ).r;
+    vec4 composite = vec4(0.0);
+    
+    vec4 source = texture2D( gm_BaseTexture, v_vTexcoord );
+    float lumFire = source.r;
+    float lumSmoke = source.b;
     
     // Step gradient from https://stackoverflow.com/questions/15935117/how-to-create-multiple-stop-gradient-fragment-shader
 	float stepLow = 0.0;
@@ -44,11 +48,15 @@ void main()
 	float stepMidEnd = 0.95;
 	float stepHigh = 1.0;
 	
-	final = mix(colorSmoke, colorAmber, smoothstep(stepLow, stepMidStart, lum));
-	final = mix(final, colorMid, smoothstep(stepMidStart, stepMidEnd, lum));
-	final = mix(final, colorCore, smoothstep(stepMidEnd, stepHigh, lum));
+	// 연기
+	composite = mix(colorSmokeA, colorSmokeB, lumSmoke);
+	
+	// 불
+	composite = mix(composite, colorAmber, smoothstep(stepLow, stepMidStart, lumFire));
+	composite = mix(composite, colorMid, smoothstep(stepMidStart, stepMidEnd, lumFire));
+	composite = mix(composite, colorCore, smoothstep(stepMidEnd, stepHigh, lumFire));
     
-    gl_FragColor = v_vColour * final;
+    gl_FragColor = v_vColour * composite;
     // gl_FragColor = vec4(vec3(texture2D( gm_BaseTexture, v_vTexcoord ).r), 1.0);
 }
 

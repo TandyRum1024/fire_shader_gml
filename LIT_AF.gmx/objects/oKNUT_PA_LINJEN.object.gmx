@@ -28,12 +28,14 @@
             <string>/// THANOS CAR
 /// THANOS CAR
 time = 0;
+mouse_xprev = -1;
+mouse_yprev = -1;
 
 // screens
 WIN_WID = room_width;
 WIN_HEI = room_height;
-RES_WID = WIN_WID;
-RES_HEI = WIN_HEI;
+RES_WID = WIN_WID &gt;&gt; 2;
+RES_HEI = WIN_HEI &gt;&gt; 2;
 
 // 불 노이즈 텍스쳐; 이 텍스쳐를 바꾸시면 불의 형대가 달라집니다.
 texCoolingMap = sprite_get_texture(texPerlin, 0);
@@ -51,6 +53,10 @@ uCoolingMap = shader_get_sampler_index(shd_fire, "u_coolingmap");
 uSource = shader_get_sampler_index(shd_fire, "u_source");
 uTextureSize = shader_get_uniform(shd_fire, "u_texturesize");
 uTime = shader_get_uniform(shd_fire, "u_time");
+
+uBurnIntensity = shader_get_uniform(shd_burn, "u_intensity");
+uBurnMap = shader_get_sampler_index(shd_burn, "u_texture");
+uBurnTime = shader_get_sampler_index(shd_burn, "u_time");
 </string>
           </argument>
         </arguments>
@@ -125,12 +131,18 @@ draw_text_colour(RES_WID &gt;&gt; 1, RES_HEI &gt;&gt; 1, "H", _rainbow, _rainbow
 draw_set_font(fntNormal);
 draw_set_halign(0);draw_set_valign(0);
 */
-draw_sprite(sprMEAT, 0, RES_WID &gt;&gt; 1, RES_HEI &gt;&gt; 1);
+
+shader_set(shd_burn);
+shader_set_uniform_f(uBurnTime, time);
+shader_set_uniform_f(uBurnIntensity, sin(time * 0.02) * 0.5 + 0.5);
+texture_set_stage(uBurnMap, texCoolingMap);
+draw_sprite_ext(sprMEAT, 0, RES_WID &gt;&gt; 1, (RES_HEI &gt;&gt; 1) + 32, 0.2, 0.2, time * 5, c_white, 1.0);
+shader_reset();
 
 draw_set_halign(1);draw_set_valign(1);
-draw_set_font(fntLobster);
+draw_set_font(fntBonehurtingjuice);
 var _rainbow = make_colour_hsv(time * 12, 255, 255);
-draw_text_transformed_colour((RES_WID &gt;&gt; 1) - 150, (RES_HEI &gt;&gt; 1) - 150, "Yum!", 1, 1, 32, _rainbow, _rainbow, _rainbow, _rainbow, 1.0);
+draw_text_transformed_colour((RES_WID &gt;&gt; 1), (RES_HEI &gt;&gt; 1) - 30, "Super#Meat Balls", 0.75, 0.75, 0, _rainbow, _rainbow, _rainbow, _rainbow, 1.0);
 draw_set_font(fntNormal);
 draw_set_halign(0);draw_set_valign(0);
 surface_reset_target();
@@ -163,13 +175,21 @@ draw_surface(surfGame, 0, 0);
 d3d_set_fog(false, 0, 0, 0);
 
 // 마우스로 그리기
+var _ratiox = mouse_x / (WIN_WID / RES_WID);
+var _ratioy = mouse_y / (WIN_HEI / RES_HEI);
+var _subs = 16;
+    
 if (mouse_check_button(mb_left))
 {
-    var _ratiox = WIN_WID / RES_WID;
-    var _ratioy = WIN_HEI / RES_HEI;
-    draw_circle_colour(mouse_x / _ratiox, mouse_y / _ratioy, 8, c_white, c_white, false);
+    for (var i=0; i&lt;=_subs; i++)
+    {
+        var _incr = i / _subs;
+        draw_circle_colour(lerp(_ratiox, mouse_xprev, _incr), lerp(_ratioy, mouse_yprev, _incr), 16, c_white, c_white, false);
+    }
 }
 
+mouse_xprev = _ratiox;
+mouse_yprev = _ratioy;
 surface_reset_target();
 
 </string>
@@ -217,6 +237,17 @@ shader_reset();
 draw_set_blend_mode(bm_normal);
 
 draw_surface_stretched(surfGame, 0, 0, WIN_WID, WIN_HEI);
+/*
+draw_sprite(bgKot, 1, WIN_WID / 2, WIN_HEI / 2);
+
+shader_set(shd_burn);
+shader_set_uniform_f(uBurnIntensity, sin(time * 0.02) * 0.5 + 0.5);
+texture_set_stage(uBurnMap, texCoolingMap);
+
+// draw_sprite_ext(sprMEAT, 0, WIN_WID &gt;&gt; 1, (WIN_HEI &gt;&gt; 1), 1, 1, sin(time), c_white, 1.0);
+draw_surface_stretched(surfGame, 0, 0, WIN_WID, WIN_HEI);
+shader_reset();
+*/
 </string>
           </argument>
         </arguments>

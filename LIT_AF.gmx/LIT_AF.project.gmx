@@ -17,6 +17,7 @@
     <shader type="GLSLES">shaders\shd_fire.shader</shader>
     <shader type="GLSLES">shaders\shd_fire_effect.shader</shader>
     <shader type="GLSLES">shaders\shd_fire_effect_cartoon.shader</shader>
+    <shader type="GLSLES">shaders\shd_burn.shader</shader>
   </shaders>
   <fonts name="fonts">
     <font>fonts\fntBonehurtingjuice</font>
