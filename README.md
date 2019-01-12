@@ -1,11 +1,9 @@
-<p align="center">
+<h1 align="center">Fire effect example<br>:fire:for GameMaker: Studio:fire:</h1>
 
-<h1> :fire:Fire effect example for GameMaker: Studio:fire: </h1>
-### A brief example of using GLSL based fire effect heavily inspired & based from<br/>[**Hugo Elias'** article about fire effect](https://web.archive.org/web/20160418004150/http://freespace.virgin.net/hugo.elias/models/m_fire.htm) and [Video tutorial about it from **The Coding Train**](https://www.youtube.com/watch?v=X0kjv0MozuY)
+<h3 align="center">A brief example of using GLSL based fire effect heavily inspired & based from<br/><a href="https://web.archive.org/web/20160418004150/http://freespace.virgin.net/hugo.elias/models/m_fire.htm"><b>Hugo Elias'</b> article about fire effect</a> and <a href="https://www.youtube.com/watch?v=X0kjv0MozuY">Video tutorial about it from <b>The Coding Train</b></a>
+</h3>
 
-![ooh meat spinny](imgs/DEMO_BANNER.gif "This meat has spun for eternity, Just let him go, My man D:")
-
-</p>
+<img align="center" src="imgs/DEMO_BANNER.gif" alt="ooh meat spinny" title="This meat has spun for eternity, Just let him go D:">
 
 Short list of features
 ====
