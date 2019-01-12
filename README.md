@@ -1,7 +1,7 @@
 <center>
   
-# **Procedurally rendered fire example for GameMaker: Studio**:fire:
-### A brief example of using GLSL shader based fire effect in GameMaker: Studio heavily inspired & based from<br/>[**Hugo Elias'** article about fire effect](https://web.archive.org/web/20160418004150/http://freespace.virgin.net/hugo.elias/models/m_fire.htm) and [Video tutorial about it from **The Coding Train**](https://www.youtube.com/watch?v=X0kjv0MozuY)
+# :fire:**Fire effect example for GameMaker: Studio**:fire:
+### A brief example of using GLSL based fire effect heavily inspired & based from<br/>[**Hugo Elias'** article about fire effect](https://web.archive.org/web/20160418004150/http://freespace.virgin.net/hugo.elias/models/m_fire.htm) and [Video tutorial about it from **The Coding Train**](https://www.youtube.com/watch?v=X0kjv0MozuY)
 
 ![ooh meat spinny](imgs/DEMO_BANNER.gif "This meat has spun for eternity, Just let him go, My man D:")
 
