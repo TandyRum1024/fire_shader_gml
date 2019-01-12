@@ -1,4 +1,4 @@
-// 2019-01-07 21:00:03
+// 2019-01-09 22:31:52
 //
 // OH GOD
 // IM BURNING
@@ -39,9 +39,6 @@ void main()
 // 불이 바람에 일렁이는 효과 사용
 #define USE_WINDMAP
 
-// 셀 쉐이딩
-// #define ANIME_MANGA_GWAAAAAAAAA
-
 // 연기를 B 채널에 저장?
 #define RENDER_SMOKE
 
@@ -63,12 +60,12 @@ uniform float u_windspeed;// = 1.5;
 // https://gist.github.com/patriciogonzalezvivo/670c22f3966e662d2f83
 const mat2 m2 = mat2(0.8,-0.6,0.6,0.8);
 float rand(vec2 n) { 
-	return fract(sin(dot(n, vec2(12.9898, 4.1414))) * 43758.5453);
+return fract(sin(dot(n, vec2(12.9898, 4.1414))) * 43758.5453);
 }
 float noise(vec2 n) {
-	const vec2 d = vec2(0.0, 1.0);
+const vec2 d = vec2(0.0, 1.0);
   vec2 b = floor(n), f = smoothstep(vec2(0.0), vec2(1.0), fract(n));
-	return mix(mix(rand(b), rand(b + d.yx), f.x), mix(rand(b + d.xy), rand(b + d.yy), f.x), f.y);
+return mix(mix(rand(b), rand(b + d.yx), f.x), mix(rand(b + d.xy), rand(b + d.yy), f.x), f.y);
 }
 float fbm( in vec2 p ){
     float f = 0.0;
@@ -187,22 +184,7 @@ void main()
         float smokeFinal = max(lumSmoke - coolmap, 0.0);
         final.b = smokeFinal;
     #endif
-    /*
-    #ifdef ANIME_MANGA_GWAAAAAAAAA
-        // 파괴 망가 그아앗
-        float bias = -0.25;
-        float lum = (cooloffwankers.r + cooloffwankers.g + cooloffwankers.b) * 0.333;
-        float alpha = floor(cooloffwankers.a + 0.5 + bias);
-        
-        // 255, 110, 48
-        cooloffwankers = vec4(1.0, 0.431, 0.188, alpha);
-    #else
-        // 더 불처럼 보이게 변색
-        // cooloffwankers *= vec4(vec3(0.99, vec2(0.98, 0.95) * min(coolmapRaw + 0.8, 1.0)), 1.0);
-        cooloffwankers.rgb = mix(cooloffwankers.rgb, vec3(0.95, 0.88, 0.71) * cooloffwankers.rgb, coolmapRaw);
-    #endif
-    */
-    
+
     gl_FragColor = final;
 }
 

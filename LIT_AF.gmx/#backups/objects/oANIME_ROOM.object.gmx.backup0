@@ -1,9 +1,13 @@
-// 2019-01-07 22:04:12
+// 2019-01-10 00:50:29
 #event create THANOS CAR
+/*
+    만화 / 픽셀 스타일의 불
+*/
 /// THANOS CAR
 time = 0;
 mouse_xprev = -1;
 mouse_yprev = -1;
+clearSurface = true;
 
 // screens
 WIN_WID = room_width;
@@ -22,6 +26,9 @@ texFire = surface_get_texture(surfFire);
 // 그리고 이건 그냥 서피스. 이 서피스를 불이 그려지는 서피스에 그립니다.
 surfGame = surface_create(RES_WID, RES_HEI);
 
+// 이펙트용 마지막 서피스
+surfComposite = surface_create(WIN_WID, WIN_HEI);
+
 // 쉐이더 변수
 uCoolingMap = shader_get_sampler_index(shd_fire, "u_coolingmap");
 uSource = shader_get_sampler_index(shd_fire, "u_source");
@@ -35,9 +42,12 @@ uBurnIntensity = shader_get_uniform(shd_burn, "u_intensity");
 uBurnMap = shader_get_sampler_index(shd_burn, "u_texture");
 uBurnTime = shader_get_sampler_index(shd_burn, "u_time");
 
-uFireCol1 = shader_get_uniform(shd_fire_effect_cartoon, "u_colourmid"); // 불 색
-uFireCol2 = shader_get_uniform(shd_fire_effect_cartoon, "u_colourcore"); // 불 하이라이트 색
-uFireCol3 = shader_get_uniform(shd_fire_effect_cartoon, "u_coloursmoke"); // 연기 색
+uFireCol1 = shader_get_uniform(shd_fire_effect_cartoon, "u_colourmid");
+uFireCol2 = shader_get_uniform(shd_fire_effect_cartoon, "u_colourcore");
+uFireCol3 = shader_get_uniform(shd_fire_effect_cartoon, "u_coloursmoke");
+
+uMlgTime = shader_get_uniform(shd_mlg_boomer, "u_time");
+uBloom = shader_get_uniform(shd_startrek_bloom, "intensity");
 
 // PIXELS
 texture_set_interpolation(false);
@@ -55,6 +65,9 @@ if (!surface_exists(surfFire))
 
 if (!surface_exists(surfGame))
     surfGame = surface_create(RES_WID, RES_HEI);
+    
+if (!surface_exists(surfComposite))
+    surfComposite = surface_create(WIN_WID, WIN_HEI);
 
 // 시간
 time += 2;
@@ -65,10 +78,24 @@ if (keyboard_check_pressed(vk_enter))
 
 #event other_room_end
 if (surface_exists(surfFire))
+{
+    surface_set_target(surfFire);
+    draw_clear_alpha(0, 0);
+    surface_reset_target();
     surface_free(surfFire);
+    texFire = -1;
+}
     
 if (surface_exists(surfGame))
+{
+    surface_set_target(surfGame);
+    draw_clear_alpha(0, 0);
+    surface_reset_target();
     surface_free(surfGame);
+}
+
+if (surface_exists(surfComposite))
+    surface_free(surfComposite);
 
 #event draw 일반 서피스 그리기
 surface_set_target(surfGame);
@@ -78,20 +105,27 @@ draw_clear_alpha(0, 0);
 var _hei = 4;
 var _fireblue = $ffe5db;
 draw_rectangle_colour(0, RES_HEI - _hei, RES_WID, RES_HEI, _fireblue, _fireblue, _fireblue, _fireblue, false);
+
+// 서피스 가운데 위치 변수
 var _cx = RES_WID >> 1;
 var _cy = RES_HEI >> 1;
 
+// 술에 찌든 스코틀란드 폭발 아저씨의 고귀한 얼굴
 shader_set(shd_burn);
+// 변수
 shader_set_uniform_f(uBurnTime, time);
-shader_set_uniform_f(uBurnIntensity, sin(time * 0.03) * 0.5 + 0.5);
+shader_set_uniform_f(uBurnIntensity, sin(time * 0.02) * 0.5 + 0.5);
 texture_set_stage(uBurnMap, texCoolingMap);
+// 어얽 그어어얽
 draw_sprite_ext(sprMEAT, 2, _cx, _cy + 40, 0.3, 0.3, time * 2, c_white, 1.0);
+// draw_sprite_ext(sprDUANEDANCE, time * 0.5, _cx, _cy + 40, 0.5, 0.5, time * 2, c_white, 1.0);
 shader_reset();
 
+// 개소리 멍멍
 draw_set_halign(1);draw_set_valign(1);
 draw_set_font(fntBonehurtingjuice);
 var _rainbow = merge_colour($00DDFF, $FFDD00, (time >> 3) & 1);//make_colour_hsv(time * 2, 255, 255);
-var _gibberish = "오뚜기#이가탄";
+var _gibberish = "슈퍼#3분짜장 사나이";
 draw_text_transformed_colour(_cx, _cy - 30 + 1, _gibberish, 0.5, 0.5, 0, c_black, c_black, c_black, c_black, 1.0);
 draw_text_transformed_colour(_cx, _cy - 30 - 1, _gibberish, 0.5, 0.5, 0, c_black, c_black, c_black, c_black, 1.0);
 draw_text_transformed_colour(_cx - 1, _cy - 30, _gibberish, 0.5, 0.5, 0, c_black, c_black, c_black, c_black, 1.0);
@@ -104,11 +138,20 @@ surface_reset_target();
 #section 불이 그려지는 서피스 업데이트
 surface_set_target(surfFire);
 
+// 첫 프레임은 서피스를 지워줍니다.
+// 안그러면 서피스에 "찌꺼기"(?) 가 남아요
+if (clearSurface)
+{
+    clearSurface = false;
+    draw_clear(0);
+}
+
+// 일반 서피스를 허여멀겋게 그려줍니다.
 d3d_set_fog(true, c_white, 0, 0);
 draw_surface(surfGame, 0, 0);
 d3d_set_fog(false, 0, 0, 0);
 
-// 마우스로 그리기
+// 마우스로 불의구
 var _ratiox = mouse_x / (WIN_WID / RES_WID);
 var _ratioy = mouse_y / (WIN_HEI / RES_HEI);
 var _subs = 16;
@@ -127,41 +170,56 @@ mouse_yprev = _ratioy;
 surface_reset_target();
 
 #section 불 효과
+
+// 1] 불 효과 계산 -- surfFire에 저장
 surface_set_target(surfFire);
 shader_set(shd_fire);
 // 쉐이더 변수 설정 
-shader_set_uniform_f(uTextureSize, RES_WID, RES_HEI);
-shader_set_uniform_f(uTime, time);
-shader_set_uniform_f(uScrollSpeed, 2);
-shader_set_uniform_f(uWindStrength, 4);
-shader_set_uniform_f(uWindSpeed, 4);
-texture_set_stage(uCoolingMap, texCoolingMap);
-texture_set_stage(uSource, texFire);
+shader_set_uniform_f(uTextureSize, RES_WID, RES_HEI); // 텍스쳐 사이즈
+shader_set_uniform_f(uTime, time); // 시간
+shader_set_uniform_f(uScrollSpeed, 2); // 불이 올라가는 속도
+shader_set_uniform_f(uWindStrength, 4); // 바람 세기
+shader_set_uniform_f(uWindSpeed, 4); // 바람 속도
+texture_set_stage(uCoolingMap, texCoolingMap); // 냉각 맵 / 구름 텍스쳐
+texture_set_stage(uSource, texFire); // 불의 정보를 저장하는 텍스쳐 / 계산에 사용될 텍스쳐 / 이전 프레임의 계산 결과 = surfFire
 
 // 서피스; 아무 서피스나 써도 됩니다.
-// 저희가 필요한건 uv가 있고 화면을 덮는 버텍스면 되니깐요
+// 저희가 필요한건 uv가 있고 서피스 전체를 덮는 버텍스면 되니깐요
 draw_surface(surfFire, 0, 0);
 shader_reset();
 surface_reset_target();
 
-// 배경
+
+// 2-1] 배경
+surface_set_target(surfComposite);
 draw_clear(0);
+shader_set(shd_mlg_boomer);
+shader_set_uniform_f(uMlgTime, time); // 시간
 draw_sprite(bgKot, 1, WIN_WID / 2, WIN_HEI / 2);
+shader_reset();
 
-// 불
+
+// 2-2] 계산된 결과로 불 그리기
 shader_set(shd_fire_effect_cartoon);
-
+// !!레인보우*파이어!!
 var _rainbow1 = make_colour_hsv((time * 0.1) % 255, 230, 220);
 var _rainbow2 = make_colour_hsv((time * 0.1 + 10) % 255, 100, 255);
 shader_set_uniform_f(uFireCol1, colour_get_red(_rainbow1) / 255, colour_get_green(_rainbow1) / 255, colour_get_blue(_rainbow1) / 255, 1);
 shader_set_uniform_f(uFireCol2, colour_get_red(_rainbow2) / 255, colour_get_green(_rainbow2) / 255, colour_get_blue(_rainbow2) / 255, 1);
-shader_set_uniform_f(uFireCol3, 0.38, 0.32, 0.3, 1);
+shader_set_uniform_f(uFireCol3, 0.28, 0.22, 0.2, 1);
 
 draw_surface_stretched(surfFire, 0, 0, WIN_WID, WIN_HEI);
 shader_reset();
 
-// 일반 서피스
+// 그 위에 신선한 일반 서피스 까지!
 draw_surface_stretched(surfGame, 0, 0, WIN_WID, WIN_HEI);
+surface_reset_target();
+
+
+shader_set(shd_startrek_bloom);
+shader_set_uniform_f(uBloom, sin(time * 0.04 + cos(time * 0.25 + 123.0) * 0.5 + 0.42) * 0.5 + 0.5);
+draw_surface(surfComposite, 0, 0);
+shader_reset();
 
 // info
-draw_text(10, 10, "<엔터 키> 로 다음 데모로 이동#마우스 드래그로 불의구");
+// draw_text(10, 10, "<엔터 키> 로 다음 데모로 이동#마우스 드래그로 불의구");

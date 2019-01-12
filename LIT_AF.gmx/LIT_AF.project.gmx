@@ -21,6 +21,10 @@
     <shader type="GLSLES">shaders\shd_fire_effect.shader</shader>
     <shader type="GLSLES">shaders\shd_fire_effect_cartoon.shader</shader>
     <shader type="GLSLES">shaders\shd_burn.shader</shader>
+    <shader type="GLSLES">shaders\shd_mlg_boomer.shader</shader>
+    <shader type="GLSLES">shaders\shd_startrek_bloom.shader</shader>
+    <shader type="GLSLES">shaders\shd_redonly.shader</shader>
+    <shader type="GLSLES">shaders\shd_blueonly.shader</shader>
   </shaders>
   <fonts name="fonts">
     <font>fonts\fntBonehurtingjuice</font>
@@ -28,12 +32,27 @@
     <font>fonts\fntHangul</font>
   </fonts>
   <objects name="objects">
-    <object>objects\oKNUT_PA_LINJEN</object>
-    <object>objects\oANIME_ROOM</object>
+    <object>objects\HHGREGG</object>
+    <object>objects\oREAL_FIRE</object>
+    <object>objects\oCARTOON_FIRE</object>
+    <objects name="DEMO">
+      <object>objects\oDEM1</object>
+      <object>objects\oDEM2</object>
+      <object>objects\oDEM3</object>
+      <object>objects\oDEM4</object>
+      <object>objects\oDEM5</object>
+    </objects>
   </objects>
   <rooms name="rooms">
     <room>rooms\rm_main</room>
     <room>rooms\rm_cartoon</room>
+    <rooms name="DEMO">
+      <room>rooms\rm_explain1</room>
+      <room>rooms\rm_explain2</room>
+      <room>rooms\rm_explain3</room>
+      <room>rooms\rm_explain4</room>
+      <room>rooms\rm_explain5</room>
+    </rooms>
   </rooms>
   <help>
     <rtf>help.rtf</rtf>

@@ -1,0 +1,96 @@
+// 2019-01-09 23:58:38
+//
+// Simple passthrough vertex shader
+//
+attribute vec3 in_Position;                  // (x,y,z)
+//attribute vec3 in_Normal;                  // (x,y,z)     unused in this shader.	
+attribute vec4 in_Colour;                    // (r,g,b,a)
+attribute vec2 in_TextureCoord;              // (u,v)
+
+varying vec2 v_vTexcoord;
+varying vec4 v_vColour;
+
+void main()
+{
+    vec4 object_space_pos = vec4( in_Position.x, in_Position.y, in_Position.z, 1.0);
+    gl_Position = gm_Matrices[MATRIX_WORLD_VIEW_PROJECTION] * object_space_pos;
+    
+    v_vColour = in_Colour;
+    v_vTexcoord = in_TextureCoord;
+}
+
+//######################_==_YOYO_SHADER_MARKER_==_######################@~//
+// SUPER MEAT BOY
+//
+varying vec2 v_vTexcoord;
+varying vec4 v_vColour;
+
+uniform float u_time;
+
+void main()
+{
+    float time = u_time * 0.1;
+    
+    const float zoomIntensity = 0.1;
+    const float zoomThreshold = 0.07;
+    float zoom = max(sin(time) * 0.05 + zoomThreshold, 0.0) - zoomThreshold;
+    
+    vec2 uvOrigin = v_vTexcoord;
+    vec2 uv = v_vTexcoord;
+    vec4 composite = vec4(1.0);
+    float centerdist = distance(uvOrigin, vec2(0.5));
+    
+    /*
+        CHROMATIC ABBERATION
+    */
+    // R
+    float zoomOffset = centerdist * 0.1 + zoom * zoomIntensity + 0.01 + sin(time * 0.1) * 0.03;
+    uv = uvOrigin;
+    uv -= 0.5;
+    uv *= (1.0 + zoomOffset);
+    uv += 0.5;
+    float sampleR = texture2D(gm_BaseTexture, uv).r;
+    
+    // B
+    zoomOffset = centerdist * 0.1 + zoom * zoomIntensity - 0.01 - sin(time * 0.1) * 0.03;
+    uv = uvOrigin;
+    uv -= 0.5;
+    uv *= (1.0 + zoomOffset);
+    uv += 0.5;
+    float sampleB = texture2D(gm_BaseTexture, uv).b;
+    
+    // G
+    zoomOffset = centerdist * 0.1 + zoom * zoomIntensity;
+    uv = uvOrigin;
+    uv -= 0.5;
+    uv *= (1.0 + zoomOffset);
+    uv += 0.5;
+    float sampleG = texture2D(gm_BaseTexture, uv).g;
+    
+    // add
+    composite = vec4(vec3(sampleR, sampleG, sampleB), 1.0);
+    
+    /*
+        GRADING
+    */
+    vec4 origin = v_vColour * texture2D( gm_BaseTexture, uv );
+    float lum = (origin.r + origin.g + origin.b) * 0.333 * sin(time) * 0.1;
+    
+    composite.r += lum * 2.0;
+    composite.g -= lum;
+    composite.b += lum * 1.5;
+    
+    
+    /*
+        FLASHING
+    */
+    composite.rgb = clamp(composite.rgb + clamp(fract(time * 0.15) - 0.9, 0.0, 1.0) * 2.0, 0.0, 1.0);
+    
+    /*
+        VIGNETTE
+    */
+    composite.rgb *= mix(1.0, 0.0, pow(centerdist, 2.0) * 1.5);
+    
+    gl_FragColor = composite;
+}
+

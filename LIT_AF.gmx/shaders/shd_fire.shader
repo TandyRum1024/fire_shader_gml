@@ -38,9 +38,6 @@ void main()
 // 불이 바람에 일렁이는 효과 사용
 #define USE_WINDMAP
 
-// 셀 쉐이딩
-// #define ANIME_MANGA_GWAAAAAAAAA
-
 // 연기를 B 채널에 저장?
 #define RENDER_SMOKE
 
@@ -186,22 +183,7 @@ void main()
         float smokeFinal = max(lumSmoke - coolmap, 0.0);
         final.b = smokeFinal;
     #endif
-    /*
-    #ifdef ANIME_MANGA_GWAAAAAAAAA
-        // 파괴 망가 그아앗
-        float bias = -0.25;
-        float lum = (cooloffwankers.r + cooloffwankers.g + cooloffwankers.b) * 0.333;
-        float alpha = floor(cooloffwankers.a + 0.5 + bias);
-        
-        // 255, 110, 48
-        cooloffwankers = vec4(1.0, 0.431, 0.188, alpha);
-    #else
-        // 더 불처럼 보이게 변색
-        // cooloffwankers *= vec4(vec3(0.99, vec2(0.98, 0.95) * min(coolmapRaw + 0.8, 1.0)), 1.0);
-        cooloffwankers.rgb = mix(cooloffwankers.rgb, vec3(0.95, 0.88, 0.71) * cooloffwankers.rgb, coolmapRaw);
-    #endif
-    */
-    
+
     gl_FragColor = final;
 }
 
