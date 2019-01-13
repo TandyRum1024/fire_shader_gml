@@ -172,7 +172,11 @@ gl_FragColor = v_vColour * composite;
 
 ["Warp feedback" -- 왜곡 시뮬레이션. 이를 이용해 위에서 저술한 효과를 한 층 더 향상시킬 수 있습니다.](https://web.archive.org/web/20160418004149/http://freespace.virgin.net/hugo.elias/graphics/x_warp.htm)
 
+[Inigo Quilez의 Fractional Brownian motion 노이즈](https://gist.github.com/patriciogonzalezvivo/670c22f3966e662d2f83) 가 쉐이더 내부 노이즈 생성에 사용되었습니다. [(원본 쉐이더)](https://www.shadertoy.com/view/MdX3Rr)
+
 ["불타면서 이미지가 나타나는/사라지는 효과"](https://cafe.naver.com/playgm/98574) 를 토대로 제작된 쉐이더가 이 예제에 사용되었습니다.
+
+["스텝 그라디언트" 코드](https://stackoverflow.com/questions/15935117/how-to-create-multiple-stop-gradient-fragment-shader) 가 불 효과 쉐이더에 사용되었습니다.
 
 # 사진들
 ![OH](imgs/DEMO_HD.gif)
