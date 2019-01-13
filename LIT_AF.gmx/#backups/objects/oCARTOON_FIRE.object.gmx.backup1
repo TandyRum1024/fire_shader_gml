@@ -1,4 +1,4 @@
-// 2019-01-13 17:43:29
+// 2019-01-13 20:18:04
 #event create THANOS CAR
 /*
     만화 / 픽셀 스타일의 불
@@ -76,7 +76,7 @@ time += 2;
 if (keyboard_check_pressed(vk_enter))
     room_goto(rm_main);
 
-#event other_room_end
+#event other_room_end 메모리 할당 해제
 if (surface_exists(surfFire))
 {
     surface_set_target(surfFire);
@@ -110,15 +110,14 @@ draw_rectangle_colour(0, RES_HEI - _hei, RES_WID, RES_HEI, _fireblue, _fireblue,
 var _cx = RES_WID >> 1;
 var _cy = RES_HEI >> 1;
 
-// 술에 찌든 스코틀란드 폭발 아저씨의 고귀한 얼굴
+// 술에 찌든 스코틀란드 폭발 아저씨의 고귀한 얼굴 (불타면서 나타나는 쉐이더)
 shader_set(shd_burn);
 // 변수
 shader_set_uniform_f(uBurnTime, time);
 shader_set_uniform_f(uBurnIntensity, sin(time * 0.02) * 0.5 + 0.5);
 texture_set_stage(uBurnMap, texCoolingMap);
-// 어얽 그어어얽
+
 draw_sprite_ext(sprMEAT, 2, _cx, _cy + 40, 0.3, 0.3, time * 2, c_white, 1.0);
-// draw_sprite_ext(sprDUANEDANCE, time * 0.5, _cx, _cy + 40, 0.5, 0.5, time * 2, c_white, 1.0);
 shader_reset();
 
 // 개소리 멍멍
@@ -202,8 +201,8 @@ shader_reset();
 // 2-2] 계산된 결과로 불 그리기
 shader_set(shd_fire_effect_cartoon);
 // !!레인보우*파이어!!
-var _rainbow1 = make_colour_hsv((time * 0.1) % 255, 230, 220);
-var _rainbow2 = make_colour_hsv((time * 0.1 + 10) % 255, 100, 255);
+var _rainbow1 = make_colour_hsv((time * 0.8) % 255, 230, 220);
+var _rainbow2 = make_colour_hsv((time * 0.8 + 10) % 255, 100, 255);
 shader_set_uniform_f(uFireCol1, colour_get_red(_rainbow1) / 255, colour_get_green(_rainbow1) / 255, colour_get_blue(_rainbow1) / 255, 1);
 shader_set_uniform_f(uFireCol2, colour_get_red(_rainbow2) / 255, colour_get_green(_rainbow2) / 255, colour_get_blue(_rainbow2) / 255, 1);
 shader_set_uniform_f(uFireCol3, 0.28, 0.22, 0.2, 1);
@@ -215,7 +214,7 @@ shader_reset();
 draw_surface_stretched(surfGame, 0, 0, WIN_WID, WIN_HEI);
 surface_reset_target();
 
-
+// 블룸
 shader_set(shd_startrek_bloom);
 shader_set_uniform_f(uBloom, sin(time * 0.04 + cos(time * 0.25 + 123.0) * 0.5 + 0.42) * 0.5 + 0.5);
 draw_surface(surfComposite, 0, 0);

@@ -1,0 +1,21 @@
+// 2019-01-13 20:14:32
+#event ccreate
+window_set_size(512, 384);
+
+#event keypress:1
+room_goto(rm_explain1);
+
+#event keypress:2
+room_goto(rm_explain2);
+
+#event keypress:3
+room_goto(rm_explain3);
+
+#event keypress:4
+room_goto(rm_explain4);
+
+#event keypress:5
+room_goto(rm_explain5);
+
+#event keypress:R
+room_goto(rm_main);

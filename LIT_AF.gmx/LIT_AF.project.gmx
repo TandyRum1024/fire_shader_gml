@@ -44,6 +44,7 @@
     </objects>
   </objects>
   <rooms name="rooms">
+    <room>rooms\rm_windowsize</room>
     <room>rooms\rm_main</room>
     <room>rooms\rm_cartoon</room>
     <rooms name="DEMO">
