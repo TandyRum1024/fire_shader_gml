@@ -30,9 +30,9 @@
 time = 0;
 mouse_xprev = -1;
 mouse_yprev = -1;
-clearSurface = true;
+clearSurface = true; // 첫 프레임에 서피스의 내용물을 지우기 위한 변수
 
-// screens
+// 화면 크기 관련 변수
 WIN_WID = room_width;
 WIN_HEI = room_height;
 RES_WID = WIN_WID;
@@ -64,7 +64,7 @@ uBurnIntensity = shader_get_uniform(shd_burn, "u_intensity");
 uBurnMap = shader_get_sampler_index(shd_burn, "u_texture");
 uBurnTime = shader_get_sampler_index(shd_burn, "u_time");
 
-// HD
+// 선형보간 해제 &amp; 폰트 설정
 texture_set_interpolation(true);
 draw_set_font(fntHangul);
 </string>
@@ -90,6 +90,7 @@ draw_set_font(fntHangul);
           <argument>
             <kind>1</kind>
             <string>/// 서피스 살려두기 &amp; 시간 변수 증가
+// 서피스가 없으면 새로 만들어 줍니다
 if (!surface_exists(surfFire))
 {
     surfFire = surface_create(RES_WID, RES_HEI);
@@ -147,7 +148,8 @@ if (keyboard_check_pressed(vk_enter))
         <arguments>
           <argument>
             <kind>1</kind>
-            <string>if (surface_exists(surfFire))
+            <string>/// 메모리 할당 제거
+if (surface_exists(surfFire))
 {
     surface_set_target(surfFire);
     draw_clear_alpha(0, 0);
@@ -213,7 +215,7 @@ draw_text(10, 10, "&lt;엔터 키&gt; 로 다음 데모로 이동#마우스 드�
 surface_set_target(surfGame);
 draw_clear_alpha(0, 0);
 
-// 매 프레임마다 맨 아래줄에 흰 픽셀을 넣어서 불이 계속 "일어나게" 합니다
+// 매 프레임마다 텍스쳐의 하단에 흰 픽셀을 넣어서 불이 계속 "일어나게" 합니다
 var _hei = 4;
 var _fireblue = $ffe5db;
 draw_rectangle_colour(0, RES_HEI - _hei, RES_WID, RES_HEI, _fireblue, _fireblue, _fireblue, _fireblue, false);
@@ -223,25 +225,26 @@ var _cx = RES_WID &gt;&gt; 1;
 var _cy = RES_HEI &gt;&gt; 1;
 
 
-// 불타는 우리의 고기
+// 화끈한 것들 (불타면서 나타나는 쉐이더)
 shader_set(shd_burn);
+
 shader_set_uniform_f(uBurnTime, time);
-shader_set_uniform_f(uBurnIntensity, sin(time * 0.018) * 0.5 + 0.5);
 texture_set_stage(uBurnMap, texCoolingMap);
 
-// 스프라이트
+shader_set_uniform_f(uBurnIntensity, sin(time * 0.018) * 0.5 + 0.5);
 draw_sprite_ext(sprMEAT, 0, _cx - 80, _cy + 150, 0.75, 0.75, sin(time * 0.1) * 8, c_white, 1.0);
 
-shader_set_uniform_f(uBurnIntensity, cos(time * 0.018) * 0.5 + 0.5); // 변수 설정
+shader_set_uniform_f(uBurnIntensity, cos(time * 0.018) * 0.5 + 0.5);
 draw_sprite_ext(sprGHERKIN, 0, _cx + 80, _cy + 150, 1, 1, cos(time * 0.1 + 42) * 8, c_white, 1.0);
 
-
-// 오이 타임
+// 잡소리
 shader_set_uniform_f(uBurnIntensity, sin(time * 0.058) * 0.1 + 0.2);
 draw_set_halign(1);draw_set_valign(1);
 draw_set_font(fntLobster);
-var _rainbow = 0;//make_colour_hsv(time * 2, 255, 255);
+
+var _rainbow = 0;//make_colour_hsv(time * 2, 255, 255); &lt;- 무지개를 원한다면 주석을 없애세요
 draw_text_transformed_colour((RES_WID &gt;&gt; 1), (RES_HEI &gt;&gt; 1) - 150, "Gherkin  Time", 1.5, 1.5, 0, _rainbow, _rainbow, _rainbow, _rainbow, 1.0);
+
 draw_set_font(fntHangul);
 draw_set_halign(0);draw_set_valign(0);
 
@@ -329,7 +332,7 @@ surface_reset_target();
           <argument>
             <kind>1</kind>
             <string>/// 불 효과
-// 1] 불 효과 계산 -- surfFire에 저장
+// 1] surfFire을 사용해 불 효과 계산 &amp; surfFire에 다시저장
 surface_set_target(surfFire);
 shader_set(shd_fire);
 // 쉐이더 변수 설정 
@@ -340,7 +343,7 @@ shader_set_uniform_f(uScrollSpeed, 4); // 불이 올라가는 속도
 shader_set_uniform_f(uWindStrength, 1.5); // 바람 세기
 shader_set_uniform_f(uWindSpeed, 1.5); // 바람 속도
 texture_set_stage(uCoolingMap, texCoolingMap); // 냉각 맵 / 구름 텍스쳐
-texture_set_stage(uSource, texFire); // 불의 정보를 저장하는 텍스쳐 / 계산에 사용될 텍스쳐 / 이전 프레임의 계산 결과 = surfFire
+texture_set_stage(uSource, texFire); // 불의 정보를 저장하는 텍스쳐 / 계산에 사용될 텍스쳐 / 이전 프레임의 계산 결과 = surfFire의 텍스쳐
 
 // 서피스; 아무 서피스나 써도 됩니다.
 // 저희가 필요한건 uv가 있고 서피스 전체를 덮는 버텍스면 되니깐요

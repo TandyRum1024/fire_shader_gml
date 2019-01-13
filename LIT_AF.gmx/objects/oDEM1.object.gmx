@@ -25,7 +25,12 @@
         <arguments>
           <argument>
             <kind>1</kind>
-            <string>time = 0;
+            <string>/*
+    시범용 오브젝트 (oDEM1 ~ oDEM5)
+    =============
+    일반 서피스 -&gt; 불 텍스쳐
+*/
+time = 0;
 mouse_xprev = -1;
 mouse_yprev = -1;
 clearSurface = true;

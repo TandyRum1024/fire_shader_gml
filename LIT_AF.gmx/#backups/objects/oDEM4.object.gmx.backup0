@@ -1,0 +1,130 @@
+// 2019-01-13 17:54:11
+#event create
+/*
+    시범용 오브젝트 (oDEM1 ~ oDEM5)
+    =============
+    불 최종 효과
+*/
+time = 0;
+mouse_xprev = -1;
+mouse_yprev = -1;
+clearSurface = true;
+
+// screens
+WIN_WID = room_width;
+WIN_HEI = room_height;
+RES_WID = 400;
+RES_HEI = 400;
+
+// tex
+texCoolingMap = sprite_get_texture(texPerlin, 0);
+surfFire = surface_create(RES_WID, RES_HEI);
+texFire = surface_get_texture(surfFire);
+surfGame = surface_create(RES_WID, RES_HEI);
+
+// shader
+uCoolingMap = shader_get_sampler_index(shd_fire, "u_coolingmap");
+uSource = shader_get_sampler_index(shd_fire, "u_source");
+uTextureSize = shader_get_uniform(shd_fire, "u_texturesize");
+uTime = shader_get_uniform(shd_fire, "u_time");
+uScrollSpeed = shader_get_uniform(shd_fire, "u_scrollspeed");
+uWindStrength = shader_get_uniform(shd_fire, "u_windstrength");
+uWindSpeed = shader_get_uniform(shd_fire, "u_windspeed");
+
+// HD
+texture_set_interpolation(true);
+draw_set_font(fntHangul);
+
+#event step|heartbeat/time
+if (!surface_exists(surfFire))
+{
+    surfFire = surface_create(RES_WID, RES_HEI);
+    texFire = surface_get_texture(surfFire);
+}
+
+if (!surface_exists(surfGame))
+    surfGame = surface_create(RES_WID, RES_HEI);
+
+time += 1;
+#section 다음 룸으로 넘어가기
+if (keyboard_check_pressed(vk_enter))
+    room_goto(rm_cartoon);
+
+#event other_room_end
+if (surface_exists(surfFire))
+{
+    surface_set_target(surfFire);
+    draw_clear_alpha(0, 0);
+    surface_reset_target();
+    surface_free(surfFire);
+    texFire = -1;
+}
+    
+if (surface_exists(surfGame))
+{
+    surface_set_target(surfGame);
+    draw_clear_alpha(0, 0);
+    surface_reset_target();
+    surface_free(surfGame);
+}
+
+#event draw
+surface_set_target(surfGame);
+draw_clear_alpha(0, 0);
+
+var _hei = 8;
+var _fireblue = $FFDD00;
+draw_rectangle_colour(0, RES_HEI - _hei, RES_WID+1, RES_HEI+1, _fireblue, _fireblue, _fireblue, _fireblue, false);
+
+var _cx = RES_WID >> 1;
+var _cy = RES_HEI >> 1;
+
+
+// MEAT
+draw_sprite_ext(sprMEAT, 0, _cx - 100, _cy + sin(time * 0.1) * 80, 0.5, 0.5, time * 2, c_white, 1.0);
+draw_sprite_ext(sprGHERKIN, 0, _cx + 100, _cy, 1, 1, cos(time * 0.1 + 42) * 8, c_white, 1.0);
+surface_reset_target();
+#section|BLZE EM'
+surface_set_target(surfFire);
+if (clearSurface)
+{
+    clearSurface = false;
+    draw_clear(0);
+}
+//draw_clear(0);
+d3d_set_fog(true, c_white, 0, 0);
+draw_surface(surfGame, 0, 0);
+d3d_set_fog(false, 0, 0, 0);
+surface_reset_target();
+
+#section
+surface_set_target(surfFire);
+shader_set(shd_fire);
+texFire = surface_get_texture(surfFire);
+shader_set_uniform_f(uTextureSize, RES_WID, RES_HEI);
+shader_set_uniform_f(uTime, time);
+shader_set_uniform_f(uScrollSpeed, 4);
+shader_set_uniform_f(uWindStrength, 1.5);
+shader_set_uniform_f(uWindSpeed, 1.5);
+texture_set_stage(uCoolingMap, texCoolingMap);
+texture_set_stage(uSource, texFire);
+draw_surface(surfFire, 0, 0);
+shader_reset();
+surface_reset_target();
+
+draw_clear(c_teal);
+draw_sprite(bgKot, 0, WIN_WID >> 1, WIN_HEI >> 1);
+
+// OG
+var _cx = WIN_WID >> 1;
+var _margin = 50;
+draw_rectangle_colour(_cx - _margin - RES_WID, 200, _cx - _margin, 200 + RES_HEI, 0, 0, 0, 0, false);
+draw_rectangle_colour(_cx + _margin, 200, _cx + _margin + RES_WID, 200 + RES_HEI, 0, 0, 0, 0, false);
+
+shader_set(shd_fire_effect);
+draw_surface_stretched(surfFire, _cx - _margin - RES_WID, 200, RES_WID, RES_HEI);
+draw_surface_stretched(surfFire, _cx + _margin, 200, RES_WID, RES_HEI);
+shader_reset();
+
+// LIT
+draw_surface_stretched(surfGame, _cx + _margin, 200, RES_WID, RES_HEI);

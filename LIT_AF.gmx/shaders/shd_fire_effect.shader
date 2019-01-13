@@ -42,7 +42,8 @@ void main()
     float lumFire = source.r;
     float lumSmoke = source.b;
     
-    // Step gradient from https://stackoverflow.com/questions/15935117/how-to-create-multiple-stop-gradient-fragment-shader
+    // 스텝 그라디언트
+    // https://stackoverflow.com/questions/15935117/how-to-create-multiple-stop-gradient-fragment-shader
 	float stepLow = 0.0;
 	float stepMidStart = 0.35;
 	float stepMidEnd = 0.95;

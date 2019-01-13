@@ -19,7 +19,7 @@ void main()
 }
 
 //######################_==_YOYO_SHADER_MARKER_==_######################@~//
-// Simple passthrough fragment shader
+// 불 이펙트: 카툰렌더링 / 픽셀
 //
 varying vec2 v_vTexcoord;
 varying vec4 v_vColour;
@@ -35,13 +35,6 @@ float round (float val)
 
 void main()
 {
-    // 255, 152, 56
-    //vec4 colorCore = vec4(1.0, 0.89, 0.21, 1.0);
-    // 255, 84, 0
-    //vec4 colorMid = vec4(0.95, 0.22, 0.0, 1.0);
-    // 99, 9, 0
-    //vec4 colorSmoke = vec4(0.58, 0.53, 0.5, 0.25);
-    
     vec2 distort = vec2(sin(v_vTexcoord.y * 42.0 + 42.42) + cos(v_vTexcoord.x * 22.0 + 8.2),
                         cos(v_vTexcoord.x * 42.0 + 42.42) + sin(v_vTexcoord.y * 22.0 + 8.2)) * 0.001;
     
@@ -53,15 +46,15 @@ void main()
     float lumFireDistort = sourceDistort.r;
     float lumSmoke = source.b;
     
-    
+    // 그라디언트 (연기)
     float interpSmoke = lumSmoke;
     composite = mix(composite, u_coloursmoke, smoothstep(0.0, 1.5, interpSmoke * interpSmoke));
     
+    // 그라디언트 (불)
     float stepCore = 0.80;
     float stepMidEnd = 0.79;
     float stepMid = 0.41;
     float stepThreshold = 0.4;
-    
     
     composite = mix(composite, u_colourmid, smoothstep(stepThreshold, stepMid, lumFire)); // antialias
     composite = mix(composite, u_colourmid, round(smoothstep(stepMid, stepMidEnd, lumFire)));
