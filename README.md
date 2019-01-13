@@ -170,7 +170,7 @@ gl_FragColor = v_vColour * composite;
 
 ["Warp feedback" which you could infuse with this to improve the visuals by Hugo Elias](https://web.archive.org/web/20160418004149/http://freespace.virgin.net/hugo.elias/graphics/x_warp.htm)
 
-[Fractional Brownian motion noise by Inigo Quilez](https://gist.github.com/patriciogonzalezvivo/670c22f3966e662d2f83) was used for internal noise generation
+[Fractional Brownian motion noise by Inigo Quilez](https://gist.github.com/patriciogonzalezvivo/670c22f3966e662d2f83) was used for internal noise generation [(Original shader)](https://www.shadertoy.com/view/MdX3Rr)
 
 ["Disintegration effect"](https://cafe.naver.com/playgm/98574) was used for second demo
 
