@@ -30,27 +30,26 @@
 time = 0;
 mouse_xprev = -1;
 mouse_yprev = -1;
-clearSurface = true; // 첫 프레임에 서피스의 내용물을 지우기 위한 변수
+clearSurface = true; // variable to clear the surfaces on first frame
 
-// 화면 크기 관련 변수
+// Screen size related
 WIN_WID = room_width;
 WIN_HEI = room_height;
 RES_WID = WIN_WID;
 RES_HEI = WIN_HEI;
 
-// 불 노이즈 텍스쳐; 이 텍스쳐를 바꾸시면 불의 형대가 달라집니다.
+// Fire's cooling map texture. Different noise means different patterns of fire.
 texCoolingMap = sprite_get_texture(texPerlin, 0);
 
-// 불이 그려지는 서피스입니다. 여기에 흰색으로 무언갈 그리면 그게 불이 됩니다.
-// 이 예제에서는 화면 전체를 차지하게 하도록 했습니다. 사이즈는 화면의 1/2 이고요.
+// The Fire buffer[tm]; We'll use this to calculate the fire and smoke.
 surfFire = surface_create(RES_WID, RES_HEI);
 texFire = surface_get_texture(surfFire);
 
-// 그리고 이건 그냥 서피스. 이 서피스를 불이 그려지는 서피스에 그립니다.
+// Regular surface / source image; we're gonna draw this onto fire buffer, fully white. 
 surfGame = surface_create(RES_WID, RES_HEI);
 
-// 쉐이더 변수
-// 불 계산 쉐이더
+// Shader uniforms
+// fire calculation
 uCoolingMap = shader_get_sampler_index(shd_fire, "u_coolingmap");
 uSource = shader_get_sampler_index(shd_fire, "u_source");
 uTextureSize = shader_get_uniform(shd_fire, "u_texturesize");
@@ -59,12 +58,12 @@ uScrollSpeed = shader_get_uniform(shd_fire, "u_scrollspeed");
 uWindStrength = shader_get_uniform(shd_fire, "u_windstrength");
 uWindSpeed = shader_get_uniform(shd_fire, "u_windspeed");
 
-// 256님의 불타면서 나타나는 쉐이더
+// Disintegration
 uBurnIntensity = shader_get_uniform(shd_burn, "u_intensity");
 uBurnMap = shader_get_sampler_index(shd_burn, "u_texture");
 uBurnTime = shader_get_sampler_index(shd_burn, "u_time");
 
-// 선형보간 해제 &amp; 폰트 설정
+// Linear interpolation settings &amp; font
 texture_set_interpolation(true);
 draw_set_font(fntHangul);
 </string>
@@ -89,8 +88,8 @@ draw_set_font(fntHangul);
         <arguments>
           <argument>
             <kind>1</kind>
-            <string>/// 서피스 살려두기 &amp; 시간 변수 증가
-// 서피스가 없으면 새로 만들어 줍니다
+            <string>/// Surface heartbeat &amp; time update
+// Check if surfaces are long goner &amp; rebuild it
 if (!surface_exists(surfFire))
 {
     surfFire = surface_create(RES_WID, RES_HEI);
@@ -100,7 +99,7 @@ if (!surface_exists(surfFire))
 if (!surface_exists(surfGame))
     surfGame = surface_create(RES_WID, RES_HEI);
 
-// 시간
+// time
 time += 2;
 
 </string>
@@ -123,7 +122,7 @@ time += 2;
         <arguments>
           <argument>
             <kind>1</kind>
-            <string>/// 다음 룸으로 넘어가기
+            <string>/// Goto next room
 if (keyboard_check_pressed(vk_enter))
     room_goto(rm_cartoon);
 </string>
@@ -148,7 +147,7 @@ if (keyboard_check_pressed(vk_enter))
         <arguments>
           <argument>
             <kind>1</kind>
-            <string>/// 메모리 할당 제거
+            <string>/// Free memories
 if (surface_exists(surfFire))
 {
     surface_set_target(surfFire);
@@ -188,7 +187,7 @@ if (surface_exists(surfGame))
           <argument>
             <kind>1</kind>
             <string>// info
-draw_text(10, 10, "&lt;엔터 키&gt; 로 다음 데모로 이동#마우스 드래그로 불의구");
+draw_text(10, 10, "Press &lt;Enter&gt; key for next demo#Drag with mouse to draw fire");
 </string>
           </argument>
         </arguments>
@@ -211,21 +210,21 @@ draw_text(10, 10, "&lt;엔터 키&gt; 로 다음 데모로 이동#마우스 드�
         <arguments>
           <argument>
             <kind>1</kind>
-            <string>/// 일반 서피스 그리기
+            <string>/// Draw regular surfaces
 surface_set_target(surfGame);
 draw_clear_alpha(0, 0);
 
-// 매 프레임마다 텍스쳐의 하단에 흰 픽셀을 넣어서 불이 계속 "일어나게" 합니다
+// Keep creating fire by setting the bottom rows white
 var _hei = 4;
-var _fireblue = $ffe5db;
+var _fireblue = $ffffff;
 draw_rectangle_colour(0, RES_HEI - _hei, RES_WID, RES_HEI, _fireblue, _fireblue, _fireblue, _fireblue, false);
 
-// 센터
+// center pos
 var _cx = RES_WID &gt;&gt; 1;
 var _cy = RES_HEI &gt;&gt; 1;
 
 
-// 화끈한 것들 (불타면서 나타나는 쉐이더)
+// Burning stuff
 shader_set(shd_burn);
 
 shader_set_uniform_f(uBurnTime, time);
@@ -237,12 +236,12 @@ draw_sprite_ext(sprMEAT, 0, _cx - 80, _cy + 150, 0.75, 0.75, sin(time * 0.1) * 8
 shader_set_uniform_f(uBurnIntensity, cos(time * 0.018) * 0.5 + 0.5);
 draw_sprite_ext(sprGHERKIN, 0, _cx + 80, _cy + 150, 1, 1, cos(time * 0.1 + 42) * 8, c_white, 1.0);
 
-// 잡소리
+// random gibberish
 shader_set_uniform_f(uBurnIntensity, sin(time * 0.058) * 0.1 + 0.2);
 draw_set_halign(1);draw_set_valign(1);
 draw_set_font(fntLobster);
 
-var _rainbow = 0;//make_colour_hsv(time * 2, 255, 255); &lt;- 무지개를 원한다면 주석을 없애세요
+var _rainbow = 0;//make_colour_hsv(time * 2, 255, 255); &lt;- Change 0 to this if you want rainbow
 draw_text_transformed_colour((RES_WID &gt;&gt; 1), (RES_HEI &gt;&gt; 1) - 150, "Gherkin  Time", 1.5, 1.5, 0, _rainbow, _rainbow, _rainbow, _rainbow, 1.0);
 
 draw_set_font(fntHangul);
@@ -251,7 +250,7 @@ draw_set_halign(0);draw_set_valign(0);
 shader_reset();
 
 
-// 백댄서 준비
+// Dancing blokes
 draw_sprite_ext(sprDUANESPIN, time * 0.5, _cx - 300, _cy + 150, 1, 1, 0, c_white, 1);
 draw_sprite_ext(sprDUANESPIN, time * 0.5, _cx + 300, _cy + 150, 1, 1, 0, c_white, 1);
 
@@ -277,23 +276,22 @@ surface_reset_target();
         <arguments>
           <argument>
             <kind>1</kind>
-            <string>/// 불이 그려지는 서피스 업데이트
+            <string>/// Fire buffer update
 surface_set_target(surfFire);
 
-// 첫 프레임은 서피스를 지워줍니다.
-// 안그러면 서피스에 "찌꺼기"(?) 가 남아요
+// Clear the contents of surface to prevent digital gunks on first frame
 if (clearSurface)
 {
     clearSurface = false;
     draw_clear(0);
 }
 
-// 일반 서피스를 허여멀겋게 그려줍니다.
+// Draw source image / regular surface fully white
 d3d_set_fog(true, c_white, 0, 0);
 draw_surface(surfGame, 0, 0);
 d3d_set_fog(false, 0, 0, 0);
 
-// 마우스로 불의구
+// Draw fire with mouse
 var _ratiox = mouse_x / (WIN_WID / RES_WID);
 var _ratioy = mouse_y / (WIN_HEI / RES_HEI);
 var _subs = 16;
@@ -331,33 +329,34 @@ surface_reset_target();
         <arguments>
           <argument>
             <kind>1</kind>
-            <string>/// 불 효과
-// 1] surfFire을 사용해 불 효과 계산 &amp; surfFire에 다시저장
+            <string>/// Fire effect
+// 1] Calculate fire using surfFire &amp; save it to surfFire again
 surface_set_target(surfFire);
 shader_set(shd_fire);
-// 쉐이더 변수 설정 
+// uniforms
 texFire = surface_get_texture(surfFire);
-shader_set_uniform_f(uTextureSize, RES_WID, RES_HEI); // 텍스쳐 사이즈
-shader_set_uniform_f(uTime, time); // 시간
-shader_set_uniform_f(uScrollSpeed, 4); // 불이 올라가는 속도
-shader_set_uniform_f(uWindStrength, 1.5); // 바람 세기
-shader_set_uniform_f(uWindSpeed, 1.5); // 바람 속도
-texture_set_stage(uCoolingMap, texCoolingMap); // 냉각 맵 / 구름 텍스쳐
-texture_set_stage(uSource, texFire); // 불의 정보를 저장하는 텍스쳐 / 계산에 사용될 텍스쳐 / 이전 프레임의 계산 결과 = surfFire의 텍스쳐
+shader_set_uniform_f(uTextureSize, RES_WID, RES_HEI); // Texture size
+shader_set_uniform_f(uTime, time); // Time
+shader_set_uniform_f(uScrollSpeed, 4); // Fire Scroll speed
+shader_set_uniform_f(uWindStrength, 1.5); // Wind strength
+shader_set_uniform_f(uWindSpeed, 1.5); // Wind speed
+texture_set_stage(uCoolingMap, texCoolingMap); // Cooling map
+texture_set_stage(uSource, texFire); // Source Texture of surfFire
 
-// 서피스; 아무 서피스나 써도 됩니다.
-// 저희가 필요한건 uv가 있고 서피스 전체를 덮는 버텍스면 되니깐요
+// Surface -- You can use any surfaces
+// In fact, this could be anything that covers the entire surface and having UVs on it
+// As all we need is the UV information and some vertices.
 draw_surface(surfFire, 0, 0);
 shader_reset();
 surface_reset_target();
 
 
-// 2-1] 배경 그리기
+// 2-1] Draw background
 draw_clear(0);
 draw_sprite(bgKot, 0, WIN_WID / 2, WIN_HEI / 2);
 
 
-// 2-2] 계산된 결과로 불 그리기
+// 2-2] Draw fire with results from [1]
 draw_set_blend_mode(bm_add);
 shader_set(shd_fire_effect);
 draw_surface_stretched(surfFire, 0, 0, WIN_WID, WIN_HEI);
@@ -365,7 +364,7 @@ shader_reset();
 draw_set_blend_mode(bm_normal);
 
 
-// 그 위에 신선한 일반 서피스 까지!
+// Plop source image on top of it
 draw_surface_stretched(surfGame, 0, 0, WIN_WID, WIN_HEI);
 </string>
           </argument>

@@ -1,4 +1,4 @@
-// 2019-01-13 19:45:04
+// 2019-01-13 21:43:28
 //
 // OH GOD
 // IM BURNING
@@ -8,9 +8,9 @@ attribute vec2 in_TextureCoord;              // (u,v)
 
 varying vec2 v_vTexcoord;
 varying vec4 v_vColour;
-varying vec2 v_pixelsize; // 텍스쳐 공간 (0...1)에서 차지하는 한 픽셀의 너비 & 높이
+varying vec2 v_pixelsize; // Pixel's size in texture space
 
-uniform vec2 u_texturesize; // 텍스쳐의 사이즈. 게임메이커에서 넘겨주세요!
+uniform vec2 u_texturesize; // Size of the u_source texture
 
 void main()
 {
@@ -20,43 +20,44 @@ void main()
     v_vColour = in_Colour;
     v_vTexcoord = in_TextureCoord;
     
-    // 한 픽셀의 크기 구하기 -- 텍스쳐의 크기로 나누어 비율을 구합니다
+    // Get pixel size in texture space
     v_pixelsize = (vec2(1.0) / u_texturesize);
 }
 
 //######################_==_YOYO_SHADER_MARKER_==_######################@~//
-// 사나이 울리는 불타는 쉐이더 -- 불 이펙트 단계
-// 여기서 나온 결과를 다른 쉐이더에서 이쁘게 지지고 볶고 하시면 됩니다.
-// 사용하실때 불의 강도(??)가 R 채널에 저장된다는거 참고하세요!
+// Fire calculation shader
+// You can use the output from this and stick it into shd_fire_effect_* to render fire
+// This shader outputs to red and blue channel
 // zik@2019
 // -------------------------
-// 참고 : https://web.archive.org/web/20160418004150/http://freespace.virgin.net/hugo.elias/models/m_fire.htm
+// Related : https://web.archive.org/web/20160418004150/http://freespace.virgin.net/hugo.elias/models/m_fire.htm
 
-// 이 Define을 주석 처리하면 쉐이더 내에서 노이즈를 생성합니다.
-// 대신 미리 만들어진 텍스쳐를 쓰는것보다 느리겠죠?
+// Use user defined cooling map texture? (u_coolingmap)
+// Commenting this would make shader to generate noise & use it as cooling map
 // #define USE_EXTERNAL_NOISE
 
-// 불이 바람에 일렁이는 효과 사용
+// Emulate the wind?
 #define USE_WINDMAP
 
-// 연기를 B 채널에 저장?
+// Render smoke & save it to blue channel?
 #define RENDER_SMOKE
 
 #define M_PI 3.14159265358979323846
 
 varying vec2 v_vTexcoord;
 varying vec4 v_vColour;
-varying vec2 v_pixelsize; // 텍스쳐 공간 내에서 한 픽셀의 크기
+varying vec2 v_pixelsize; // Pixel's size in texture space
 
-uniform sampler2D u_coolingmap; // 불 노이즈 텍스쳐. 이쁜 노이즈를 넘겨주시면 될겁니다
-uniform sampler2D u_source; // 소스 텍스쳐 -- 이 텍스쳐로 불 이펙트를 계산합니다.
-uniform float u_time; // 시간
+// Cooling map -- You can use any noise for this or you can comment "#define USE_EXTERNAL_NOISE" above to use internal one instead.
+uniform sampler2D u_coolingmap;
+uniform sampler2D u_source; // Source texture to calculate over -- You want this to be same as the one you're writting onto.
+uniform float u_time; // Time
 
-uniform float u_scrollspeed; // 불이 올라가는 속도
-uniform float u_windstrength; // 바람의 세기
-uniform float u_windspeed; // 바람의 속도
+uniform float u_scrollspeed; // How fast the fire's scrolling up
+uniform float u_windstrength; // Strength of wind -- Needs "#define USE_WINDMAP" uncommented to use
+uniform float u_windspeed; // Speed of wind
 
-// Fractional Brownian motion 노이즈 -- Inigo Quilez 제작
+// Fractional Brownian motion noise by Inigo Quilez
 // https://gist.github.com/patriciogonzalezvivo/670c22f3966e662d2f83
 const mat2 m2 = mat2(0.8,-0.6,0.6,0.8);
 float rand(vec2 n) { 
@@ -78,14 +79,14 @@ float fbm( in vec2 p ){
 }
 //
 
-// 불과 연기의 평균을 구하는 함수
+// Function to get the average of fire and smoke intensity
 float intensity (sampler2D src, vec2 uv)
 {
     vec4 tex = texture2D(src, uv);
     return (tex.r + tex.b) * 0.5;
 }
 
-// 주어진 픽셀과 이웃하는 픽셀의 평균값을 가져오는 함수 (R채널)
+// Function to get the average of the neighbor's red channel
 float neighbor2D (sampler2D src, vec2 uv)
 {
     float pl = texture2D(src, uv - vec2(v_pixelsize.x, 0.0)).r;
@@ -96,7 +97,7 @@ float neighbor2D (sampler2D src, vec2 uv)
     return (pl + pr + pt + pb) * 0.25;
 }
 
-// 주어진 픽셀과 이웃하는 픽셀의 평균값을 가져오는 함수 (R & B 채널)
+// Function to get the average of the neighbor's red and blue channel (= fire and smoke intensity)
 float neighborSmoke (sampler2D src, vec2 uv)
 {
     float pl = intensity(src, uv - vec2(v_pixelsize.x, 0.0));
@@ -107,7 +108,7 @@ float neighborSmoke (sampler2D src, vec2 uv)
     return (pl + pr + pt + pb) * 0.5;
 }
 
-// 바람을 구하는 함수
+// Function to get the wind value for offseting the sampling UV
 vec2 windmap2D (vec2 uv, float time, float strength)
 {
     float windx = noise(uv * 5.0 + vec2(time)) + (sin(uv.y * 16.0 + 21.0 + uv.x * 21.0 + time) + sin(time + uv.x * 32.0 + 0.42)) * strength;
@@ -122,41 +123,47 @@ void main()
     float timeOff = u_time * 0.05;
     
     /*
-        불!!!!!
+        Calculate fire
+        ==============
     */
     vec2 uvFire = v_vTexcoord + vec2(0.0, v_pixelsize.y * u_scrollspeed);
     
-    // 평균값 가져오기
+    // Get wind offset value
     #ifdef USE_WINDMAP
         vec2 flowmap = windmap2D(v_vTexcoord, timeOff * u_windspeed, u_windstrength);
     #else
         vec2 flowmap = vec2(0.0);
     #endif
     
-    float lumFire = neighbor2D(u_source, uvFire + flowmap); // fire
+    // Get fire intensity
+    float lumFire = neighbor2D(u_source, uvFire + flowmap);
     
-    // 냉각맵 (텍스쳐) 값 가져오기
+    
+    // Get the value of cooling map
     float fireY = (v_vTexcoord.y + v_pixelsize.y * u_scrollspeed * u_time);
     
     #ifdef USE_EXTERNAL_NOISE
-        float coolmapRaw = texture2D(u_coolingmap, vec2(v_vTexcoord.x, fract(fireY)) + flowmap).r; // fract로 fireY 가 0..1 범위에 있게 만들어요
-        // 냉각맵 조정
+        // use fract() to keep the UVs in the [0..1] bounds
+        float coolmapRaw = texture2D(u_coolingmap, vec2(v_vTexcoord.x, fract(fireY)) + flowmap).r;
+        // Adjust cooling map
         float coolmap = smoothstep(0.0, 1.0, coolmapRaw * coolmapRaw);
         coolmap *= coolmap;
         coolmap *= 0.75;
     #else
         float coolmapRaw = fbm((vec2(v_vTexcoord.x, fireY) + flowmap) * 40.0);
-        // 냉각맵 조정
+        // Adjust cooling map
         float coolmap = smoothstep(0.0, 1.0, coolmapRaw * coolmapRaw);
         coolmap *= 0.25;
     #endif
+    //
     
-    // r 채널에 결과값 저장
+    // Subtract, Clamp it and save the result into red channel.
     float fireFinal = max(lumFire - coolmap, 0.0);
     final.r = fireFinal;
     
     /*
-        연기!!!!!
+        Calculate smoke
+        ==============
     */
     #ifdef RENDER_SMOKE
         const float smokeMultiplier = 1.5;
@@ -173,18 +180,18 @@ void main()
         
         #ifdef USE_EXTERNAL_NOISE
             coolmapRaw = texture2D(u_coolingmap, (vec2(v_vTexcoord.x, fract(smokeY)) + (flowmap * smokeMultiplier)) * 0.5).r;
-            // 냉각맵 조정
+            // Adjust cooling map
             coolmap = smoothstep(0.0, 1.0, coolmapRaw * coolmapRaw);
             coolmap *= coolmap;
             coolmap *= 0.75;
         #else
             coolmapRaw = fbm((vec2(v_vTexcoord.x, smokeY) + (flowmap * smokeMultiplier)) * 15.0);
-            // 냉각맵 조정
+            // Adjust cooling map
             coolmap = smoothstep(0.0, 1.0, coolmapRaw * coolmapRaw);
             coolmap *= 0.25;
         #endif
         
-        // b 채널에 결과값 저장
+        // Subtract, Clamp it and save the result into blue channel.
         float smokeFinal = max(lumSmoke - coolmap, 0.0);
         final.b = smokeFinal;
     #endif

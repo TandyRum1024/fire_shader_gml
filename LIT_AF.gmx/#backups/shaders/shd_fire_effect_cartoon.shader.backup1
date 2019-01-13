@@ -1,4 +1,4 @@
-// 2019-01-13 18:42:14
+// 2019-01-13 21:44:41
 //
 // Simple passthrough vertex shader
 //
@@ -20,7 +20,7 @@ void main()
 }
 
 //######################_==_YOYO_SHADER_MARKER_==_######################@~//
-// 불 이펙트: 카툰렌더링 / 픽셀
+// Fire effect : Cel shaded
 //
 varying vec2 v_vTexcoord;
 varying vec4 v_vColour;
@@ -47,15 +47,15 @@ void main()
     float lumFireDistort = sourceDistort.r;
     float lumSmoke = source.b;
     
-    
+    // Gradient smoke (연기)
     float interpSmoke = lumSmoke;
     composite = mix(composite, u_coloursmoke, smoothstep(0.0, 1.5, interpSmoke * interpSmoke));
     
+    // Gradient (불)
     float stepCore = 0.80;
     float stepMidEnd = 0.79;
     float stepMid = 0.41;
     float stepThreshold = 0.4;
-    
     
     composite = mix(composite, u_colourmid, smoothstep(stepThreshold, stepMid, lumFire)); // antialias
     composite = mix(composite, u_colourmid, round(smoothstep(stepMid, stepMidEnd, lumFire)));

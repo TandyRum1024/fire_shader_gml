@@ -19,7 +19,7 @@ void main()
 }
 
 //######################_==_YOYO_SHADER_MARKER_==_######################@~//
-// 불 이펙트 : 일반
+// Fire effect : Normal
 //
 varying vec2 v_vTexcoord;
 varying vec4 v_vColour;
@@ -41,17 +41,17 @@ void main()
     float lumFire = source.r;
     float lumSmoke = source.b;
     
-    // 스텝 그라디언트
+    // Step gradient from
     // https://stackoverflow.com/questions/15935117/how-to-create-multiple-stop-gradient-fragment-shader
 	float stepLow = 0.0;
 	float stepMidStart = 0.35;
 	float stepMidEnd = 0.95;
 	float stepHigh = 1.0;
 	
-	// 연기
+	// Smoke
 	vec4 smokeFinal = mix(colorSmokeA, colorSmokeB, lumSmoke);
 	
-	// 불
+	// Fire
 	composite = mix(smokeFinal, colorAmber, smoothstep(stepLow, stepMidStart, lumFire));
 	composite = mix(composite, colorMid, smoothstep(stepMidStart, stepMidEnd, lumFire));
 	composite = mix(composite, colorCore, smoothstep(stepMidEnd, stepHigh, lumFire));

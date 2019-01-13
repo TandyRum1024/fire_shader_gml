@@ -1,4 +1,4 @@
-// 2019-01-09 21:15:27
+// 2019-01-13 21:46:46
 //
 // Simple passthrough vertex shader
 //
@@ -20,19 +20,19 @@ void main()
 }
 
 //######################_==_YOYO_SHADER_MARKER_==_######################@~//
-// 불타는 쉐이더 (해적판)
-// 원본 : 256님의 불타면서 이미지가 나타나는/사라지는 효과
+// Disintegration shader
+// Original :
 // https://cafe.naver.com/playgm/98574
 // 
 // #define USE_EXTERNAL_TEXTURE
 varying vec2 v_vTexcoord;
 varying vec4 v_vColour;
 
-uniform sampler2D u_texture; // 노이즈 텍스쳐
-uniform float u_intensity; // [0..1] 불타는 정도
-uniform float u_time; // 활활타는 효과를 위한 시간 변수
+uniform sampler2D u_texture; // Noise tex
+uniform float u_intensity; // intensity [0..1] -- 1 means fully burnt away and 0 means totally fine
+uniform float u_time; // time for crackling effect on edges
 
-// Fractional Brownian motion 노이즈 -- Inigo Quilez 제작
+// Fractional Brownian motion noise by Inigo Quilez
 // https://gist.github.com/patriciogonzalezvivo/670c22f3966e662d2f83
 const mat2 m2 = mat2(0.8,-0.6,0.6,0.8);
 float rand(vec2 n) { 
@@ -65,7 +65,7 @@ void main()
     float alpha = composite.a;
     float microwave_chan_meat_spin = 0.0;
     
-    // 렌지쨩 미트스핀
+    // yo noise
     #ifdef USE_EXTERNAL_TEXTURE
         microwave_chan_meat_spin = texture2D(u_texture, fract(v_vTexcoord)).r;
     #else
@@ -75,14 +75,14 @@ void main()
     float delta = max(u_intensity - microwave_chan_meat_spin, 0.0);
     float interp = smoothstep(microwave_chan_meat_spin, 1.0, u_intensity + microwave_chan_meat_spin);
     
-    // 그라디언트 키프레임
+    // gradient stops
     float stepChar = 0.1;
     float stepCharEnd = 0.75;
     float stepAmber = 0.95 + sin(u_time * 0.22) * 0.02;
     float stepFull = 0.98 + cos(u_time * 0.42 + 42.0) * 0.01;
     float stepLimit = min(1.0 + cos(u_time * 0.52 + 21.0) * 0.01, 1.0);
     
-    // 색 섞기
+    // mix colour
     composite = mix(composite, composite * colorChar, smoothstep(stepChar, stepCharEnd, interp));
     composite = mix(composite, min(composite + colorBurn, 1.0), smoothstep(stepCharEnd, stepAmber, interp));
     composite = mix(composite, min(original + colorAmber, 1.0), smoothstep(stepAmber, stepFull, interp));

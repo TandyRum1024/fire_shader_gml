@@ -1,4 +1,4 @@
-// 2019-01-13 18:44:06
+// 2019-01-13 21:43:52
 //
 // Simple passthrough vertex shader
 //
@@ -38,22 +38,21 @@ void main()
     vec4 colorSmokeB = vec4(0.38, 0.33, 0.3, 0.4);
     
     vec4 composite = vec4(0.0);
-    
     vec4 source = texture2D( gm_BaseTexture, v_vTexcoord );
     float lumFire = source.r;
     float lumSmoke = source.b;
     
-    // 스텝 그라디언트
+    // Step gradient from
     // https://stackoverflow.com/questions/15935117/how-to-create-multiple-stop-gradient-fragment-shader
 	float stepLow = 0.0;
 	float stepMidStart = 0.35;
 	float stepMidEnd = 0.95;
 	float stepHigh = 1.0;
 	
-	// 연기
+	// Smoke
 	vec4 smokeFinal = mix(colorSmokeA, colorSmokeB, lumSmoke);
 	
-	// 불
+	// Fire
 	composite = mix(smokeFinal, colorAmber, smoothstep(stepLow, stepMidStart, lumFire));
 	composite = mix(composite, colorMid, smoothstep(stepMidStart, stepMidEnd, lumFire));
 	composite = mix(composite, colorCore, smoothstep(stepMidEnd, stepHigh, lumFire));
