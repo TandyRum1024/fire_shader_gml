@@ -37,7 +37,6 @@ void main()
     vec4 colorSmokeB = vec4(0.38, 0.33, 0.3, 0.4);
     
     vec4 composite = vec4(0.0);
-    
     vec4 source = texture2D( gm_BaseTexture, v_vTexcoord );
     float lumFire = source.r;
     float lumSmoke = source.b;

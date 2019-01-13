@@ -1,4 +1,4 @@
-// 2019-01-13 18:41:30
+// 2019-01-13 19:45:02
 //
 // OH GOD
 // IM BURNING
@@ -46,15 +46,15 @@ void main()
 
 varying vec2 v_vTexcoord;
 varying vec4 v_vColour;
-varying vec2 v_pixelsize;
+varying vec2 v_pixelsize; // 텍스쳐 공간 내에서 한 픽셀의 크기
 
 uniform sampler2D u_coolingmap; // 불 노이즈 텍스쳐. 이쁜 노이즈를 넘겨주시면 될겁니다
 uniform sampler2D u_source; // 소스 텍스쳐 -- 이 텍스쳐로 불 이펙트를 계산합니다.
 uniform float u_time; // 시간
 
 uniform float u_scrollspeed; // 불이 올라가는 속도
-uniform float u_windstrength;
-uniform float u_windspeed;
+uniform float u_windstrength; // 바람의 세기
+uniform float u_windspeed; // 바람의 속도
 
 // Fractional Brownian motion 노이즈 -- Inigo Quilez 제작
 // https://gist.github.com/patriciogonzalezvivo/670c22f3966e662d2f83
@@ -139,11 +139,11 @@ void main()
     float fireY = (v_vTexcoord.y + v_pixelsize.y * u_scrollspeed * u_time);
     
     #ifdef USE_EXTERNAL_NOISE
-        float coolmapRaw = texture2D(u_coolingmap, vec2(v_vTexcoord.x, fract(fireY))).r; // fract로 fireY 가 0..1 범위에 있게 만들어요
+        float coolmapRaw = texture2D(u_coolingmap, vec2(v_vTexcoord.x, fract(fireY)) + flowmap).r; // fract로 fireY 가 0..1 범위에 있게 만들어요
         // 냉각맵 조정
         float coolmap = smoothstep(0.0, 1.0, coolmapRaw * coolmapRaw);
         coolmap *= coolmap;
-        coolmap *= 0.95;
+        coolmap *= 0.75;
     #else
         float coolmapRaw = fbm((vec2(v_vTexcoord.x, fireY) + flowmap) * 40.0);
         // 냉각맵 조정
@@ -172,13 +172,13 @@ void main()
         float smokeY = (v_vTexcoord.y + smokeMultiplier + v_pixelsize.y * smokeMultiplier * u_scrollspeed * u_time);
         
         #ifdef USE_EXTERNAL_NOISE
-            coolmapRaw = texture2D(u_coolingmap, vec2(v_vTexcoord.x, fract(smokeY)) * 0.5).r;
+            coolmapRaw = texture2D(u_coolingmap, (vec2(v_vTexcoord.x, fract(smokeY)) + (flowmap * smokeMultiplier)) * 0.5).r;
             // 냉각맵 조정
             coolmap = smoothstep(0.0, 1.0, coolmapRaw * coolmapRaw);
             coolmap *= coolmap;
             coolmap *= 0.75;
         #else
-            coolmapRaw = fbm((vec2(v_vTexcoord.x, smokeY) + flowmap) * 15.0);
+            coolmapRaw = fbm((vec2(v_vTexcoord.x, smokeY) + (flowmap * smokeMultiplier)) * 15.0);
             // 냉각맵 조정
             coolmap = smoothstep(0.0, 1.0, coolmapRaw * coolmapRaw);
             coolmap *= 0.25;
