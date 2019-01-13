@@ -170,6 +170,12 @@ gl_FragColor = v_vColour * composite;
 
 ["Warp feedback" which you could infuse with this to improve the visuals by Hugo Elias](https://web.archive.org/web/20160418004149/http://freespace.virgin.net/hugo.elias/graphics/x_warp.htm)
 
+[Fractional Brownian motion noise by Inigo Quilez](https://gist.github.com/patriciogonzalezvivo/670c22f3966e662d2f83) was used for internal noise generation
+
+["Disintegration effect"](https://cafe.naver.com/playgm/98574) was used for second demo
+
+["Step gradient" code snipset](https://stackoverflow.com/questions/15935117/how-to-create-multiple-stop-gradient-fragment-shader) was used for fire effect shader
+
 # Gallery
 ![OH](imgs/DEMO_HD.gif)
 ![OH](imgs/DEMO_PIXEL.gif)
