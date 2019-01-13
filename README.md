@@ -1,6 +1,6 @@
 <h1 align="center">게임메이커 스튜디오 예제:<br>:fire:절차적으로 생성된 화염 효과:fire:</h1>
 
-<h3 align="center">GLSL(쉐이더)를 이용한 화끈하게 불살라버리는 예제입니다.<br/><a href="https://web.archive.org/web/20160418004150/http://freespace.virgin.net/hugo.elias/models/m_fire.htm"><b>Hugo Elias</b>의 화염 효과</a> 그리고 <a href="https://www.youtube.com/watch?v=X0kjv0MozuY"><b>The Coding Train</b>에서 만든 비디오</a>를 베이스로 하였습니다.
+<h3 align="center">GLSL(쉐이더)를 이용한 :fire:화끈하게 불살라버리는:fire: 예제입니다.<br/><a href="https://web.archive.org/web/20160418004150/http://freespace.virgin.net/hugo.elias/models/m_fire.htm"><b>Hugo Elias</b>의 화염 효과</a> 그리고 <a href="https://www.youtube.com/watch?v=X0kjv0MozuY"><b>The Coding Train</b>에서 만든 비디오</a>를 베이스로 하였습니다.
 </h3>
 
 <img align="center" src="imgs/DEMO_BANNER.gif" alt="렌지짱 미트스핀" title="슈퍼 미트 보이!!!!!!">
@@ -25,9 +25,9 @@
 - `shd_fire_effect` 와 `shd_fire_effect_cartoon` 는 `shd_fire` 에서 나온 결과를 *더 불같이* 만들어주는 역할을 합니다.
 - 나머지 쉐이더들은 그냥 눈요깃거리를 위한 쉐이더입니다.
 
-어떻게 그럴수가 있죠
+어떻게 제작되었나요
 ====
-원본 [의사 코드](https://ko.wikipedia.org/wiki/%EC%9D%98%EC%82%AC%EC%BD%94%EB%93%9C)는 다음과 같습니다 :
+원본 [의사 코드](https://web.archive.org/web/20160418004150/http://freespace.virgin.net/hugo.elias/models/m_fire.htm)는 다음과 같습니다 :
 ```
 loop forever
 
@@ -163,7 +163,7 @@ gl_FragColor = v_vColour * composite;
 
 *그러고 나서 그 위에 원본 이미지를 드로우 하면 끝!*
 
-# 추가 문헌
+# 추가 자료
 [Hugo Elias의 원본 문서](https://web.archive.org/web/20160418004150/http://freespace.virgin.net/hugo.elias/models/m_fire.htm)
 
 [The Coding Train에서 제작한 위 효과를 Processing으로 구현하는 비디오](https://www.youtube.com/watch?v=X0kjv0MozuY)
@@ -171,6 +171,8 @@ gl_FragColor = v_vColour * composite;
 [Hugo Elias의 유체 역학을 토대로 한 불 효과를 구현하는 또 다른 방법](https://web.archive.org/web/20160418004147/http://freespace.virgin.net/hugo.elias/models/m_ffire.htm)
 
 ["Warp feedback" -- 왜곡 시뮬레이션. 이를 이용해 위에서 저술한 효과를 한 층 더 향상시킬 수 있습니다.](https://web.archive.org/web/20160418004149/http://freespace.virgin.net/hugo.elias/graphics/x_warp.htm)
+
+["불타면서 이미지가 나타나는/사라지는 효과"](https://cafe.naver.com/playgm/98574) 를 토대로 제작된 쉐이더가 이 예제에 사용되었습니다.
 
 # 사진들
 ![OH](imgs/DEMO_HD.gif)
