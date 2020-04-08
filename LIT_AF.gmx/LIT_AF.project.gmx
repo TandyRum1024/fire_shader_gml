@@ -3,13 +3,17 @@
   <Configs name="configs">
     <Config>Configs\Default</Config>
   </Configs>
-  <NewExtensions/>
+  <NewExtensions>
+    <extension index="0">extensions\FIREZX</extension>
+  </NewExtensions>
   <sounds name="sound"/>
   <sprites name="sprites">
     <sprite>sprites\texPerlin</sprite>
     <sprite>sprites\texPerlin256</sprite>
+    <sprite>sprites\texBayer32</sprite>
     <sprite>sprites\bgKot</sprite>
     <sprite>sprites\sprMEAT</sprite>
+    <sprite>sprites\sprGATO</sprite>
     <sprite>sprites\sprDUANEDANCE</sprite>
     <sprite>sprites\sprDUANESPIN</sprite>
     <sprite>sprites\sprGHERKIN</sprite>
@@ -20,9 +24,11 @@
     <shader type="GLSLES">shaders\shd_fire.shader</shader>
     <shader type="GLSLES">shaders\shd_fire_effect.shader</shader>
     <shader type="GLSLES">shaders\shd_fire_effect_cartoon.shader</shader>
+    <shader type="GLSLES">shaders\shd_fire_effect_ditheredrainbow.shader</shader>
     <shader type="GLSLES">shaders\shd_burn.shader</shader>
     <shader type="GLSLES">shaders\shd_mlg_boomer.shader</shader>
     <shader type="GLSLES">shaders\shd_startrek_bloom.shader</shader>
+    <shader type="GLSLES">shaders\shd_bg_tripland.shader</shader>
     <shader type="GLSLES">shaders\shd_redonly.shader</shader>
     <shader type="GLSLES">shaders\shd_blueonly.shader</shader>
   </shaders>
@@ -41,6 +47,7 @@
       <object>objects\oDEM3</object>
       <object>objects\oDEM4</object>
       <object>objects\oDEM5</object>
+      <object>objects\oCARTOON_FIRE_OLD</object>
     </objects>
   </objects>
   <rooms name="rooms">

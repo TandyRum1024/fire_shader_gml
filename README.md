@@ -3,7 +3,8 @@
 <h3 align="center">A brief example of using GLSL based fire effect heavily inspired & based from<br/><a href="https://web.archive.org/web/20160418004150/http://freespace.virgin.net/hugo.elias/models/m_fire.htm"><b>Hugo Elias'</b> article about fire effect</a> and <a href="https://www.youtube.com/watch?v=X0kjv0MozuY">Video tutorial about it from <b>The Coding Train</b></a>
 </h3>
 
-<img align="center" src="imgs/DEMO_BANNER.gif" alt="ooh meat spinny" title="This meat has spun for eternity, Just let him go D:">
+![GATO](imgs/DEMO_PIXEL_2.gif)
+![MEAT](imgs/DEMO_BANNER.gif)
 
 Short list of features
 ====
