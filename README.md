@@ -3,7 +3,8 @@
 <h3 align="center">GLSL(쉐이더)를 이용한 :fire:화끈하게 불살라버리는:fire: 예제입니다.<br/><a href="https://web.archive.org/web/20160418004150/http://freespace.virgin.net/hugo.elias/models/m_fire.htm"><b>Hugo Elias</b>의 화염 효과</a> 그리고 <a href="https://www.youtube.com/watch?v=X0kjv0MozuY"><b>The Coding Train</b>에서 만든 비디오</a>를 베이스로 하였습니다.
 </h3>
 
-<img align="center" src="imgs/DEMO_BANNER.gif" alt="렌지짱 미트스핀" title="슈퍼 미트 보이!!!!!!">
+![GATO](imgs/DEMO_PIXEL_2.gif)
+![MEAT](imgs/DEMO_BANNER.gif)
 
 이 예제는요..
 ====
@@ -14,7 +15,7 @@
 
 뭐요, 게임메이커요?
 ====
-***당연하죠!*** GLSL (= 픽셀 단위로 이미지를 수정 가능한 환경) 을 지원하는 모든 것에서도 돌아갈 수 있다는걸 증명하기 위해서이기도 하고, 결과적으로 게임메이커는 재밌잖아요 :D
+***.....네.*** GLSL (= 픽셀 단위로 이미지를 수정 가능한 환경) 을 지원하는 모든 것에서도 돌아갈 수 있다는걸 증명하기 위해서이기도 하고, 결과적으로 저는 고통을 즐깁니다 :]
 
 사용법
 ====
