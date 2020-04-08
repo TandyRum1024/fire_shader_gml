@@ -1,4 +1,4 @@
-// 2019-01-13 22:02:24
+// 2020-04-09 04:15:37
 #event create THANOS CAR
 /// THANOS CAR
 time = 0;
@@ -17,6 +17,7 @@ texCoolingMap = sprite_get_texture(texPerlin, 0);
 
 // The Fire buffer[tm]; We'll use this to calculate the fire and smoke.
 surfFire = surface_create(RES_WID, RES_HEI);
+surfFireTemp = surface_create(RES_WID, RES_HEI); // temporary buffer surface to hold the calculated result of fire
 texFire = surface_get_texture(surfFire);
 
 // Regular surface / source image; we're gonna draw this onto fire buffer, fully white. 
@@ -49,6 +50,9 @@ if (!surface_exists(surfFire))
     texFire = surface_get_texture(surfFire);
 }
 
+if (!surface_exists(surfFireTemp))
+    surfFireTemp = surface_create(RES_WID, RES_HEI);
+
 if (!surface_exists(surfGame))
     surfGame = surface_create(RES_WID, RES_HEI);
 
@@ -65,8 +69,13 @@ if (surface_exists(surfFire))
     surface_set_target(surfFire);
     draw_clear_alpha(0, 0);
     surface_reset_target();
+    surface_set_target(surfFireTemp);
+    draw_clear_alpha(0, 0);
+    surface_reset_target();
     surface_free(surfFire);
+    surface_free(surfFireTemp);
     texFire = -1;
+    surfFireTemp = -1;
 }
     
 if (surface_exists(surfGame))
@@ -123,10 +132,51 @@ draw_sprite_ext(sprDUANESPIN, time * 0.5, _cx + 300, _cy + 150, 1, 1, 0, c_white
 
 surface_reset_target();
 
+#section Fire effect
+// 1] Calculate fire using surfFire & save it to temporary surface
+surface_set_target(surfFireTemp);
+shader_set(shd_fire);
+// uniforms
+texFire = surface_get_texture(surfFire);
+shader_set_uniform_f(uTextureSize, RES_WID, RES_HEI); // Texture size
+shader_set_uniform_f(uTime, time); // Time
+shader_set_uniform_f(uScrollSpeed, 4); // Fire Scroll speed
+shader_set_uniform_f(uWindStrength, 1.5); // Wind strength
+shader_set_uniform_f(uWindSpeed, 1.5); // Wind speed
+texture_set_stage(uCoolingMap, texCoolingMap); // Cooling map
+texture_set_stage(uSource, texFire); // Source Texture of surfFire
+
+// Surface -- You can use any surfaces
+// In fact, this could be anything that covers the entire surface and having UVs on it
+// As all we need is the UV information and some vertices passed by drawing the surface, Thus the contents of surface does not matter at all!
+draw_surface(surfFire, 0, 0);
+shader_reset();
+surface_reset_target();
+
+// 1-1] Transfer the calculated fire effect to original surfFire surface
+surface_set_target(surfFire);
+draw_surface(surfFireTemp, 0, 0);
+surface_reset_target();
+
+// 2-1] Draw background
+draw_clear(0);
+draw_sprite(bgKot, 0, WIN_WID / 2, WIN_HEI / 2);
+
+
+// 2-2] Draw fire with results from [1]
+draw_set_blend_mode(bm_add);
+shader_set(shd_fire_effect);
+draw_surface_stretched(surfFire, 0, 0, WIN_WID, WIN_HEI);
+shader_reset();
+draw_set_blend_mode(bm_normal);
+
+
+// Plop source image on top of it
+draw_surface_stretched(surfGame, 0, 0, WIN_WID, WIN_HEI);
 #section Fire buffer update
 surface_set_target(surfFire);
 
-// Clear the contents of surface to prevent gunks on first frame
+// Clear the contents of surface to prevent digital gunks on first frame
 if (clearSurface)
 {
     clearSurface = false;
@@ -156,43 +206,6 @@ mouse_xprev = _ratiox;
 mouse_yprev = _ratioy;
 surface_reset_target();
 
-#section Fire effect
-// 1] Calculate fire using surfFire & save it to surfFire again
-surface_set_target(surfFire);
-shader_set(shd_fire);
-// uniforms
-texFire = surface_get_texture(surfFire);
-shader_set_uniform_f(uTextureSize, RES_WID, RES_HEI); // Texture size
-shader_set_uniform_f(uTime, time); // Time
-shader_set_uniform_f(uScrollSpeed, 4); // Fire Scroll speed
-shader_set_uniform_f(uWindStrength, 1.5); // Wind strength
-shader_set_uniform_f(uWindSpeed, 1.5); // Wind speed
-texture_set_stage(uCoolingMap, texCoolingMap); // Cooling map
-texture_set_stage(uSource, texFire); // Source Texture of surfFire
-
-// Surface -- You can use any surfaces
-// In fact, this could be anything that covers the entire surface and having UVs on it
-// As all we need is the UV information and some vertices.
-draw_surface(surfFire, 0, 0);
-shader_reset();
-surface_reset_target();
-
-
-// 2-1] Draw background
-draw_clear(0);
-draw_sprite(bgKot, 0, WIN_WID / 2, WIN_HEI / 2);
-
-
-// 2-2] Draw fire with results from [1]
-draw_set_blend_mode(bm_add);
-shader_set(shd_fire_effect);
-draw_surface_stretched(surfFire, 0, 0, WIN_WID, WIN_HEI);
-shader_reset();
-draw_set_blend_mode(bm_normal);
-
-
-// Plop source image on top of it
-draw_surface_stretched(surfGame, 0, 0, WIN_WID, WIN_HEI);
 
 #event draw_gui
 // info

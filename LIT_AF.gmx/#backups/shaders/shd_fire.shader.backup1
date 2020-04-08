@@ -1,4 +1,4 @@
-// 2019-01-13 21:43:20
+// 2019-01-13 21:43:28
 //
 // OH GOD
 // IM BURNING
@@ -20,7 +20,7 @@ void main()
     v_vColour = in_Colour;
     v_vTexcoord = in_TextureCoord;
     
-    // 한 픽셀의 크기 구하기 -- 텍스쳐의 크기로 나누어 비율을 구합니다
+    // Get pixel size in texture space
     v_pixelsize = (vec2(1.0) / u_texturesize);
 }
 

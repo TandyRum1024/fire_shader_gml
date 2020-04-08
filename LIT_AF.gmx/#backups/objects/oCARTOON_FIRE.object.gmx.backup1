@@ -1,4 +1,4 @@
-// 2019-01-13 22:08:24
+// 2020-04-09 07:33:15
 #event create THANOS CAR
 /*
     Cel-shaded / Pixelated fire
@@ -18,8 +18,12 @@ RES_HEI = WIN_HEI >> 2;
 // Fire's cooling map texture. Different noise means different patterns of fire.
 texCoolingMap = sprite_get_texture(texPerlin256, 0);
 
+// Bayer matrix texture, Used for dithered patterns for shader.
+texBayerMatrix = sprite_get_texture(texBayer32, 0);
+
 // The Fire buffer[tm]; We'll use this to calculate the fire and smoke.
 surfFire = surface_create(RES_WID, RES_HEI);
+surfFireTemp = surface_create(RES_WID, RES_HEI); // temporary buffer surface to hold the calculated result of fire
 texFire = surface_get_texture(surfFire);
 
 // Regular surface / source image; we're gonna draw this onto fire buffer, fully white. 
@@ -41,9 +45,16 @@ uBurnIntensity = shader_get_uniform(shd_burn, "u_intensity");
 uBurnMap = shader_get_sampler_index(shd_burn, "u_texture");
 uBurnTime = shader_get_sampler_index(shd_burn, "u_time");
 
-uFireCol1 = shader_get_uniform(shd_fire_effect_cartoon, "u_colourmid");
-uFireCol2 = shader_get_uniform(shd_fire_effect_cartoon, "u_colourcore");
-uFireCol3 = shader_get_uniform(shd_fire_effect_cartoon, "u_coloursmoke");
+// uFireCol1 = shader_get_uniform(shd_fire_effect_cartoon, "u_colourmid");
+uBayerMatrix = shader_get_sampler_index(shd_fire_effect_ditheredrainbow, "u_bayer");
+uTexelSize = shader_get_uniform(shd_fire_effect_ditheredrainbow, "u_texelsize");
+uBayerTexelSize = shader_get_uniform(shd_fire_effect_ditheredrainbow, "u_bayertexelsize");
+uEffectTime = shader_get_uniform(shd_fire_effect_ditheredrainbow, "u_time");
+
+uBGBayerMatrix = shader_get_sampler_index(shd_bg_tripland, "u_bayer");
+uBGTexelSize = shader_get_uniform(shd_bg_tripland, "u_texelsize");
+uBGBayerTexelSize = shader_get_uniform(shd_bg_tripland, "u_bayertexelsize");
+uBGEffectTime = shader_get_uniform(shd_bg_tripland, "u_time");
 
 uMlgTime = shader_get_uniform(shd_mlg_boomer, "u_time");
 uBloom = shader_get_uniform(shd_startrek_bloom, "intensity");
@@ -65,6 +76,9 @@ if (!surface_exists(surfFire))
 
 if (!surface_exists(surfGame))
     surfGame = surface_create(RES_WID, RES_HEI);
+
+if (!surface_exists(surfFireTemp))
+    surfFireTemp = surface_create(RES_WID, RES_HEI);
     
 if (!surface_exists(surfComposite))
     surfComposite = surface_create(WIN_WID, WIN_HEI);
@@ -82,8 +96,13 @@ if (surface_exists(surfFire))
     surface_set_target(surfFire);
     draw_clear_alpha(0, 0);
     surface_reset_target();
+    surface_set_target(surfFireTemp);
+    draw_clear_alpha(0, 0);
+    surface_reset_target();
     surface_free(surfFire);
+    surface_free(surfFireTemp);
     texFire = -1;
+    surfFireTemp = -1;
 }
     
 if (surface_exists(surfGame))
@@ -110,26 +129,34 @@ draw_rectangle_colour(0, RES_HEI - _hei, RES_WID, RES_HEI, _fireblue, _fireblue,
 var _cx = RES_WID >> 1;
 var _cy = RES_HEI >> 1;
 
-// Drunk scottish explosion man's precious face (disintegration effect)
-shader_set(shd_burn);
-// uniforms
-shader_set_uniform_f(uBurnTime, time);
-shader_set_uniform_f(uBurnIntensity, sin(time * 0.02) * 0.5 + 0.5);
-texture_set_stage(uBurnMap, texCoolingMap);
-
-draw_sprite_ext(sprMEAT, 2, _cx, _cy + 40, 0.3, 0.3, time * 2, c_white, 1.0);
-shader_reset();
+// Draw cat
+var _t = (pi * 2 / room_speed) * time * 0.25;
+var _gatoscale = 2.0;
+var _gatohei = sprite_get_height(sprGATO);
+var _bodyx = _cx, _bodyy = _cy, _bodysquash = sin(_t * 0.5) * 0.1;
+var _headx = _bodyx, _heady = _bodyy + power(sin(_t * 0.5), 2.0) * 8;
+var _headr =  sin(_t * 0.5) * 3 + cos(_t * 0.75) * 2;
+var _knifex = _bodyx + cos(_t) * 4 + cos(_t * 1.2) * 4 + sin(_t * 2.0) * 2,  _knifey = _heady - sin(_t) * 2 + sin(_t * 1.2) * 3 + cos(_t * 2.0);
+var _knifer = cos(_t) * 4 + sin(_t * 1.2) * 2;
+draw_sprite_ext(sprGATO, 0, _bodyx, _bodyy + (_gatohei * _gatoscale - _gatohei * (_gatoscale - _bodysquash)) * 0.5, _gatoscale + _bodysquash, _gatoscale - _bodysquash, 0, c_white, 1.0);
+draw_sprite_ext(sprGATO, 1, _headx, _heady, _gatoscale, _gatoscale, _headr, c_white, 1.0);
+draw_sprite_ext(sprGATO, 2, _knifex, _knifey, _gatoscale, _gatoscale, _knifer, c_white, 1.0);
 
 // Random gibberish
 draw_set_halign(1);draw_set_valign(1);
 draw_set_font(fntBonehurtingjuice);
-var _rainbow = merge_colour($00DDFF, $FFDD00, (time >> 3) & 1);//make_colour_hsv(time * 2, 255, 255);
-var _gibberish = "SUPER#MEAT BALLS";
-draw_text_transformed_colour(_cx, _cy - 30 + 1, _gibberish, 0.5, 0.5, 0, c_black, c_black, c_black, c_black, 1.0);
-draw_text_transformed_colour(_cx, _cy - 30 - 1, _gibberish, 0.5, 0.5, 0, c_black, c_black, c_black, c_black, 1.0);
-draw_text_transformed_colour(_cx - 1, _cy - 30, _gibberish, 0.5, 0.5, 0, c_black, c_black, c_black, c_black, 1.0);
-draw_text_transformed_colour(_cx + 1, _cy - 30, _gibberish, 0.5, 0.5, 0, c_black, c_black, c_black, c_black, 1.0);
-draw_text_transformed_colour(_cx, _cy - 30, _gibberish, 0.5, 0.5, 0, _rainbow, _rainbow, _rainbow, _rainbow, 1.0);
+var _gibberish = "근본없는 고양이 움짤";
+var _gibberishscale = 0.5;
+var _px = _cx - string_width(_gibberish) * _gibberishscale * 0.5;
+for (var i=0; i<string_length(_gibberish); i++)
+{
+    var _rainbow = make_colour_hsv(time * 2 + i * 10, 200, 80);
+    var _ch = string_char_at(_gibberish, i + 1);
+    var _chy = sin(current_time * 0.001 * (pi) + i * (pi * 0.1)) * 4;
+    draw_text_transformed_colour(_px, _cy - 50 + _chy + 1, _ch, _gibberishscale, _gibberishscale, 0, c_black, c_black, c_black, c_black, 1.0);
+    draw_text_transformed_colour(_px, _cy - 50 + _chy, _ch, _gibberishscale, _gibberishscale, 0, _rainbow, _rainbow, _rainbow, _rainbow, 1.0);
+    _px += string_width(_ch) * _gibberishscale;
+}
 draw_set_font(fntHangul);
 draw_set_halign(0);draw_set_valign(0);
 surface_reset_target();
@@ -167,10 +194,10 @@ mouse_xprev = _ratiox;
 mouse_yprev = _ratioy;
 surface_reset_target();
 
-#section 불 효과
+#section Fire effect
 
-// 1] Calculate fire using surfFire & save it to surfFire again
-surface_set_target(surfFire);
+// 1] Calculate fire using surfFire & save it to temporary surface
+surface_set_target(surfFireTemp);
 shader_set(shd_fire);
 // uniforms
 texFire = surface_get_texture(surfFire);
@@ -182,28 +209,40 @@ shader_set_uniform_f(uWindSpeed, 4); // Wind speed
 texture_set_stage(uCoolingMap, texCoolingMap); // Cooling map
 texture_set_stage(uSource, texFire); // Source Texture of surfFire
 
+// (see oREAL_FIRE object to see why are we drawing a surface in the line below :)
 draw_surface(surfFire, 0, 0);
 shader_reset();
 surface_reset_target();
 
+// 1-1] Transfer the calculated fire effect to original surfFire surface
+surface_set_target(surfFire);
+draw_surface(surfFireTemp, 0, 0);
+surface_reset_target();
 
 // 2-1] Background
 surface_set_target(surfComposite);
 draw_clear(0);
-shader_set(shd_mlg_boomer);
-shader_set_uniform_f(uMlgTime, time); // time
-draw_sprite(bgKot, 1, WIN_WID / 2, WIN_HEI / 2);
+shader_set(shd_bg_tripland);
+texture_set_stage(uBGBayerMatrix, texBayerMatrix);
+shader_set_uniform_f(uBGTexelSize, 1 / surface_get_width(surfFire), 1 / surface_get_height(surfFire));
+shader_set_uniform_f(uBGBayerTexelSize, texture_get_texel_width(texBayerMatrix), texture_get_texel_height(texBayerMatrix));
+shader_set_uniform_f(uBGEffectTime, current_time * 0.001);
+draw_surface_stretched(surfFire, 0, 0, WIN_WID, WIN_HEI);
 shader_reset();
 
 
 // 2-2] Fire effect
-shader_set(shd_fire_effect_cartoon);
+shader_set(shd_fire_effect_ditheredrainbow);
 // !!RAINBOW*FIRE!!
-var _rainbow1 = make_colour_hsv((time * 0.1) % 255, 230, 220);
-var _rainbow2 = make_colour_hsv((time * 0.1 + 10) % 255, 100, 255);
-shader_set_uniform_f(uFireCol1, colour_get_red(_rainbow1) / 255, colour_get_green(_rainbow1) / 255, colour_get_blue(_rainbow1) / 255, 1);
-shader_set_uniform_f(uFireCol2, colour_get_red(_rainbow2) / 255, colour_get_green(_rainbow2) / 255, colour_get_blue(_rainbow2) / 255, 1);
-shader_set_uniform_f(uFireCol3, 0.28, 0.22, 0.2, 1);
+// var _rainbow1 = make_colour_hsv((time * 0.1) % 255, 230, 220);
+// var _rainbow2 = make_colour_hsv((time * 0.1 + 10) % 255, 100, 255);
+// shader_set_uniform_f(uFireCol1, colour_get_red(_rainbow1) / 255, colour_get_green(_rainbow1) / 255, colour_get_blue(_rainbow1) / 255, 1);
+// shader_set_uniform_f(uFireCol2, colour_get_red(_rainbow2) / 255, colour_get_green(_rainbow2) / 255, colour_get_blue(_rainbow2) / 255, 1);
+// shader_set_uniform_f(uFireCol3, 0.28, 0.22, 0.2, 1);
+texture_set_stage(uBayerMatrix, texBayerMatrix);
+shader_set_uniform_f(uTexelSize, 1 / surface_get_width(surfFire), 1 / surface_get_height(surfFire));
+shader_set_uniform_f(uBayerTexelSize, texture_get_texel_width(texBayerMatrix), texture_get_texel_height(texBayerMatrix));
+shader_set_uniform_f(uEffectTime, current_time * 0.001);
 
 draw_surface_stretched(surfFire, 0, 0, WIN_WID, WIN_HEI);
 shader_reset();
@@ -213,10 +252,10 @@ draw_surface_stretched(surfGame, 0, 0, WIN_WID, WIN_HEI);
 surface_reset_target();
 
 // Bloom
-shader_set(shd_startrek_bloom);
-shader_set_uniform_f(uBloom, sin(time * 0.04 + cos(time * 0.25 + 123.0) * 0.5 + 0.42) * 0.5 + 0.5);
+// shader_set(shd_startrek_bloom);
+// shader_set_uniform_f(uBloom, sin(time * 0.04 + cos(time * 0.25 + 123.0) * 0.5 + 0.42) * 0.5 + 0.5);
 draw_surface(surfComposite, 0, 0);
-shader_reset();
+// shader_reset();
 
 // info
 draw_text(10, 10, "Press <Enter> key for previous demo#Drag with mouse to draw fire");

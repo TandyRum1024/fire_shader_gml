@@ -1,4 +1,4 @@
-// 2019-01-13 17:54:36
+// 2020-04-09 04:19:47
 #event create
 /*
     시범용 오브젝트 (oDEM1 ~ oDEM5)
@@ -19,6 +19,7 @@ RES_HEI = WIN_HEI;
 // tex
 texCoolingMap = sprite_get_texture(texPerlin, 0);
 surfFire = surface_create(RES_WID, RES_HEI);
+surfFireTemp = surface_create(RES_WID, RES_HEI);
 texFire = surface_get_texture(surfFire);
 surfGame = surface_create(RES_WID, RES_HEI);
 
@@ -42,6 +43,9 @@ if (!surface_exists(surfFire))
     texFire = surface_get_texture(surfFire);
 }
 
+if (!surface_exists(surfFireTemp))
+    surfFireTemp = surface_create(RES_WID, RES_HEI);
+
 if (!surface_exists(surfGame))
     surfGame = surface_create(RES_WID, RES_HEI);
 
@@ -56,10 +60,15 @@ if (surface_exists(surfFire))
     surface_set_target(surfFire);
     draw_clear_alpha(0, 0);
     surface_reset_target();
+    surface_set_target(surfFireTemp);
+    draw_clear_alpha(0, 0);
+    surface_reset_target();
     surface_free(surfFire);
+    surface_free(surfFireTemp);
     texFire = -1;
+    surfFireTemp = -1;
 }
-    
+
 if (surface_exists(surfGame))
 {
     surface_set_target(surfGame);
@@ -98,7 +107,7 @@ d3d_set_fog(false, 0, 0, 0);
 surface_reset_target();
 
 #section
-surface_set_target(surfFire);
+surface_set_target(surfFireTemp);
 shader_set(shd_fire);
 texFire = surface_get_texture(surfFire);
 shader_set_uniform_f(uTextureSize, RES_WID, RES_HEI);
@@ -110,6 +119,10 @@ texture_set_stage(uCoolingMap, texCoolingMap);
 texture_set_stage(uSource, texFire);
 draw_surface(surfFire, 0, 0);
 shader_reset();
+surface_reset_target();
+
+surface_set_target(surfFire);
+draw_surface(surfFireTemp, 0, 0);
 surface_reset_target();
 
 draw_clear(c_teal);
